@@ -7,66 +7,85 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-green-50 min-h-screen">
-    <div class="container mx-auto px-4 py-6 max-w-6xl">
+<body class="bg-slate-50 min-h-screen font-inter">
+    <div class="container mx-auto px-4 py-6 max-w-6xl pb-24">
         <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-green-800 mb-2">Golf Score Tracker</h1>
-            <p class="text-green-600">8-Card Golf Game Score Tracker</p>
+        <header class="text-center mb-10">
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+                <h1 class="text-3xl font-bold text-slate-800 mb-2">Golf Score Tracker</h1>
+                <p class="text-slate-600 text-sm font-medium">8-Card Golf Game Score Tracker</p>
+            </div>
         </header>
 
         <!-- Player Setup Section -->
-        <div id="player-setup" class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 class="text-2xl font-semibold text-green-800 mb-4">Player Setup</h2>
-            <div class="flex flex-wrap gap-4 items-center">
+        <div id="player-setup" class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+            <h2 class="text-xl font-bold text-slate-800 mb-6">Player Setup</h2>
+            <div class="flex flex-col sm:flex-row gap-3 mb-4">
                 <input 
                     type="text" 
                     id="player-name" 
                     placeholder="Enter player name" 
-                    class="flex-1 min-w-48 px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    class="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-slate-700 min-h-[44px]"
                 >
                 <button 
                     id="add-player" 
-                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-semibold transition-colors"
+                    class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors min-h-[44px] touch-manipulation"
                 >
                     Add Player
                 </button>
                 <button 
                     id="start-game" 
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-semibold transition-colors"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors min-h-[44px] touch-manipulation"
                     style="display: none;"
                 >
                     Start Game
                 </button>
             </div>
-            <div id="players-list" class="mt-4 flex flex-wrap gap-2"></div>
+            <div id="players-list" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Previous Games Section -->
+        <div id="previous-games" class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Previous Games</h2>
+                <button 
+                    id="clear-history" 
+                    class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors min-h-[36px] touch-manipulation"
+                    style="display: none;"
+                >
+                    Clear History
+                </button>
+            </div>
+            <div id="games-history" class="space-y-3">
+                <p class="text-slate-500 italic text-center py-4">No previous games yet. Complete a game to see your history!</p>
+            </div>
         </div>
 
         <!-- Game Board -->
-        <div id="game-board" class="bg-white rounded-lg shadow-lg p-6" style="display: none;">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold text-green-800">Game Board</h2>
-                <div class="text-sm text-gray-600">
+        <div id="game-board" class="bg-white border border-slate-200 rounded-2xl p-6" style="display: none;">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                <h2 class="text-xl font-bold text-slate-800">Game Board</h2>
+                <div class="bg-teal-100 text-teal-800 px-3 py-2 rounded-full text-sm font-semibold">
                     Round <span id="current-round">1</span> of 9
                 </div>
             </div>
             
             <!-- Score Table -->
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="score-table" class="w-full border-collapse">
                     <thead>
-                        <tr class="bg-green-100">
-                            <th class="border border-green-300 px-3 py-2 text-left">Player</th>
-                            <th class="border border-green-300 px-3 py-2 text-center">R1</th>
-                            <th class="border border-green-300 px-3 py-2 text-center">R2</th>
-                            <th class="border border-green-300 px-3 py-2 text-center">R3</th>
-                            <th class="border border-green-300 px-3 py-2 text-center">R4</th>
-                            <th class="border border-green-300 px-3 py-2 text-center">R5</th>
-                            <th class="border border-green-300 px-3 py-2 text-center">R6</th>
-                            <th class="border border-green-300 px-3 py-2 text-center">R7</th>
-                            <th class="border border-green-300 px-3 py-2 text-center">R8</th>
-                            <th class="border border-green-300 px-3 py-2 text-center">R9</th>
-                            <th class="border border-green-300 px-3 py-2 text-center font-bold bg-green-200">Total</th>
+                        <tr class="bg-slate-50">
+                            <th class="border-b border-r border-slate-200 px-4 py-3 text-left font-semibold text-slate-700">Player</th>
+                            <th class="border-b border-r border-slate-200 px-3 py-3 text-center font-semibold text-slate-700">R1</th>
+                            <th class="border-b border-r border-slate-200 px-3 py-3 text-center font-semibold text-slate-700">R2</th>
+                            <th class="border-b border-r border-slate-200 px-3 py-3 text-center font-semibold text-slate-700">R3</th>
+                            <th class="border-b border-r border-slate-200 px-3 py-3 text-center font-semibold text-slate-700">R4</th>
+                            <th class="border-b border-r border-slate-200 px-3 py-3 text-center font-semibold text-slate-700">R5</th>
+                            <th class="border-b border-r border-slate-200 px-3 py-3 text-center font-semibold text-slate-700">R6</th>
+                            <th class="border-b border-r border-slate-200 px-3 py-3 text-center font-semibold text-slate-700">R7</th>
+                            <th class="border-b border-r border-slate-200 px-3 py-3 text-center font-semibold text-slate-700">R8</th>
+                            <th class="border-b border-r border-slate-200 px-3 py-3 text-center font-semibold text-slate-700">R9</th>
+                            <th class="border-b border-slate-200 px-4 py-3 text-center font-bold text-slate-800 bg-blue-50">Total</th>
                         </tr>
                     </thead>
                     <tbody id="score-table-body">
@@ -76,24 +95,44 @@
             </div>
 
             <!-- Game Controls -->
-            <div class="flex flex-wrap gap-4 mt-6 justify-center">
+            <div class="flex flex-wrap gap-3 mt-6 justify-center">
                 <button 
                     id="clear-round" 
-                    class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md font-semibold transition-colors"
+                    class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-semibold transition-colors min-h-[44px]"
                 >
-                    Clear Current Round
+                    Clear Round
                 </button>
                 <button 
                     id="clear-all" 
-                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-semibold transition-colors"
+                    class="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-xl font-semibold transition-colors min-h-[44px]"
                 >
-                    Clear All Scores
+                    Clear All
                 </button>
                 <button 
                     id="new-game" 
-                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold transition-colors"
+                    class="bg-slate-500 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-semibold transition-colors min-h-[44px]"
                 >
                     New Game
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fixed Bottom Navigation -->
+    <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-50" style="display: none;">
+        <div class="container mx-auto max-w-6xl">
+            <div class="flex gap-3 justify-center">
+                <button 
+                    id="bottom-reset" 
+                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-xl font-semibold transition-colors min-h-[44px] flex-1 max-w-[140px]"
+                >
+                    🔄 Reset
+                </button>
+                <button 
+                    id="bottom-export" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-semibold transition-colors min-h-[44px] flex-1 max-w-[140px]"
+                >
+                    📊 Export
                 </button>
             </div>
         </div>

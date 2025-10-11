@@ -30,6 +30,11 @@ class GolfScoreTracker {
         document.getElementById('clear-round').addEventListener('click', () => this.clearRound());
         document.getElementById('clear-all').addEventListener('click', () => this.clearAllScores());
         document.getElementById('new-game').addEventListener('click', () => this.newGame());
+        document.getElementById('clear-history').addEventListener('click', () => this.clearHistory());
+        
+        // Bottom navigation events
+        document.getElementById('bottom-reset').addEventListener('click', () => this.resetGame());
+        document.getElementById('bottom-export').addEventListener('click', () => this.exportSummary());
 
         // Load existing game state
         if (this.players.length >= this.minPlayers) {
@@ -105,7 +110,9 @@ class GolfScoreTracker {
         }
 
         document.getElementById('player-setup').style.display = 'none';
+        document.getElementById('previous-games').style.display = 'none';
         document.getElementById('game-board').style.display = 'block';
+        document.getElementById('bottom-nav').style.display = 'block';
         document.getElementById('game-board').classList.add('fade-in');
         
         this.createScoreTable();
@@ -119,22 +126,25 @@ class GolfScoreTracker {
         this.players.forEach(playerName => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="border border-green-300 px-3 py-2 font-semibold player-name-cell">${playerName}</td>
+                <td class="border-b border-r border-slate-200 px-4 py-3 font-semibold text-slate-700 player-name-cell">${playerName}</td>
                 ${Array.from({length: this.maxRounds}, (_, round) => 
-                    `<td class="border border-green-300 px-1 py-2 score-cell" data-player="${playerName}" data-round="${round}">
-                        <input 
-                            type="number" 
-                            class="score-input" 
-                            placeholder="0"
-                            min="-5"
-                            max="20"
-                            data-player="${playerName}" 
-                            data-round="${round}"
-                            value="${this.scores[playerName][round] !== null ? this.scores[playerName][round] : ''}"
-                        >
+                    `<td class="border-b border-r border-slate-200 px-2 py-2 score-cell" data-player="${playerName}" data-round="${round}">
+                        <div class="score-input-container">
+                            <input 
+                                type="number" 
+                                class="score-input" 
+                                placeholder="-"
+                                min="-5"
+                                max="20"
+                                data-player="${playerName}" 
+                                data-round="${round}"
+                                value="${this.scores[playerName][round] !== null ? this.scores[playerName][round] : ''}"
+                            >
+                            <span class="edit-icon">✏️</span>
+                        </div>
                     </td>`
                 ).join('')}
-                <td class="border border-green-300 px-3 py-2 text-center total-cell" data-player="${playerName}">
+                <td class="border-b border-slate-200 px-4 py-3 text-center font-bold text-slate-800 total-cell bg-blue-50" data-player="${playerName}">
                     ${this.calculatePlayerTotal(playerName)}
                 </td>
             `;
@@ -176,6 +186,9 @@ class GolfScoreTracker {
         // Check if round is complete and advance if needed
         this.checkRoundComplete();
         
+        // Check if game is over
+        this.checkGameOver();
+        
         this.saveToStorage();
     }
 
@@ -198,6 +211,330 @@ class GolfScoreTracker {
                 this.updateCurrentRound();
                 this.highlightCurrentRound();
             }, 500);
+        }
+    }
+
+    checkGameOver() {
+        // Check if all rounds are complete for all players
+        const allRoundsComplete = this.players.every(player => 
+            this.scores[player].every(score => score !== null)
+        );
+
+        if (allRoundsComplete) {
+            setTimeout(() => {
+                this.showGameOver();
+            }, 1000);
+        }
+    }
+
+    showGameOver() {
+        // Calculate final totals and find winner(s)
+        const playerTotals = this.players.map(player => ({
+            name: player,
+            total: this.calculatePlayerTotal(player)
+        }));
+
+        // Sort by total (lowest score wins in golf)
+        playerTotals.sort((a, b) => a.total - b.total);
+        
+        const lowestScore = playerTotals[0].total;
+        const winners = playerTotals.filter(player => player.total === lowestScore);
+        
+        // Save completed game to history
+        this.saveGameToHistory(playerTotals);
+        
+        // Update current round display to show game over
+        const roundDisplay = document.getElementById('current-round');
+        roundDisplay.textContent = 'Game Over!';
+        roundDisplay.style.color = '#dc2626';
+        roundDisplay.style.fontWeight = 'bold';
+        
+        // Highlight winner row(s)
+        winners.forEach(winner => {
+            const winnerRow = document.querySelector(`[data-player="${winner.name}"].total-cell`).parentElement;
+            winnerRow.classList.add('winner-row');
+        });
+        
+        // Show game over message
+        this.displayGameOverMessage(winners);
+    }
+
+    displayGameOverMessage(winners) {
+        // Create game over overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'game-over-overlay';
+        overlay.innerHTML = `
+            <div class="game-over-message">
+                <h2 class="text-3xl font-bold text-green-800 mb-4">🎉 Game Over! 🎉</h2>
+                <div class="mb-4">
+                    ${winners.length === 1 ? 
+                        `<p class="text-xl text-green-700">Winner: <strong>${winners[0].name}</strong></p>
+                         <p class="text-lg text-gray-600">Final Score: ${winners[0].total}</p>` :
+                        `<p class="text-xl text-green-700">It's a tie!</p>
+                         <p class="text-lg text-gray-600">Winners: ${winners.map(w => w.name).join(', ')}</p>
+                         <p class="text-lg text-gray-600">Final Score: ${winners[0].total}</p>`
+                    }
+                </div>
+                <button 
+                    onclick="gameTracker.closeGameOver()" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-semibold transition-colors mr-3"
+                >
+                    Continue
+                </button>
+                <button 
+                    onclick="gameTracker.newGame()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-semibold transition-colors"
+                >
+                    New Game
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Add fade-in animation
+        setTimeout(() => {
+            overlay.classList.add('show');
+        }, 10);
+    }
+
+    closeGameOver() {
+        const overlay = document.querySelector('.game-over-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+    }
+
+    resetGame() {
+        if (confirm('Reset the entire game? This will clear all players and scores and cannot be undone.')) {
+            // Clear all game data
+            this.players = [];
+            this.scores = {};
+            this.currentRound = 1;
+            
+            // Clear localStorage
+            try {
+                localStorage.removeItem('golfScoreTracker');
+            } catch (error) {
+                console.error('Failed to clear localStorage:', error);
+            }
+            
+            // Reset UI to initial state
+            document.getElementById('player-setup').style.display = 'block';
+            document.getElementById('previous-games').style.display = 'block';
+            document.getElementById('game-board').style.display = 'none';
+            document.getElementById('bottom-nav').style.display = 'none';
+            
+            // Reset round display styling
+            const roundDisplay = document.getElementById('current-round');
+            roundDisplay.textContent = '1';
+            roundDisplay.style.color = '';
+            roundDisplay.style.fontWeight = '';
+            
+            // Close any game over overlay
+            this.closeGameOver();
+            
+            this.updatePlayersList();
+            this.updateHistoryDisplay();
+            
+            // Focus on player name input
+            document.getElementById('player-name').focus();
+        }
+    }
+
+    exportSummary() {
+        if (this.players.length === 0) {
+            alert('No game data to export.');
+            return;
+        }
+        
+        // Calculate all player totals
+        const playerTotals = this.players.map(player => ({
+            name: player,
+            total: this.calculatePlayerTotal(player),
+            scores: [...this.scores[player]]
+        }));
+        
+        // Sort by total (lowest score wins)
+        playerTotals.sort((a, b) => a.total - b.total);
+        
+        // Create summary text
+        const timestamp = new Date().toLocaleString();
+        let summary = `GOLF SCORE TRACKER - GAME SUMMARY\n`;
+        summary += `Generated: ${timestamp}\n`;
+        summary += `Players: ${this.players.length}\n`;
+        summary += `Rounds Played: ${this.currentRound === 10 ? '9 (Complete)' : this.currentRound - 1}\n\n`;
+        
+        // Add detailed scores
+        summary += `DETAILED SCORES:\n`;
+        summary += `${'Player'.padEnd(15)} | `;
+        for (let i = 1; i <= 9; i++) {
+            summary += `R${i}`.padStart(4);
+        }
+        summary += ` | Total\n`;
+        summary += `${'-'.repeat(15)} | ${'-'.repeat(36)} | -----\n`;
+        
+        playerTotals.forEach(player => {
+            summary += `${player.name.padEnd(15)} | `;
+            player.scores.forEach(score => {
+                const scoreStr = score !== null ? score.toString() : '-';
+                summary += scoreStr.padStart(4);
+            });
+            summary += ` | ${player.total.toString().padStart(3)}\n`;
+        });
+        
+        // Add winner information
+        summary += `\nRESULTS:\n`;
+        const lowestScore = playerTotals[0].total;
+        const winners = playerTotals.filter(p => p.total === lowestScore);
+        
+        if (winners.length === 1) {
+            summary += `🏆 WINNER: ${winners[0].name} (Score: ${winners[0].total})\n`;
+        } else {
+            summary += `🏆 TIE GAME!\n`;
+            summary += `Winners: ${winners.map(w => `${w.name} (${w.total})`).join(', ')}\n`;
+        }
+        
+        summary += `\nLowest Score Wins in Golf!\n`;
+        
+        // Create downloadable file
+        this.downloadSummary(summary);
+        
+        // Also copy to clipboard if possible
+        this.copyToClipboard(summary);
+    }
+    
+    downloadSummary(summary) {
+        try {
+            const blob = new Blob([summary], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            a.href = url;
+            a.download = `golf-scores-${timestamp}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Download failed:', error);
+            // Fallback: show in alert
+            alert('Download failed. Here\'s your summary:\n\n' + summary);
+        }
+    }
+    
+    copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show brief success message
+                this.showToast('Summary copied to clipboard and downloaded!');
+            }).catch(() => {
+                this.showToast('Summary downloaded successfully!');
+            });
+        } else {
+            this.showToast('Summary downloaded successfully!');
+        }
+    }
+    
+    showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // Show and auto-hide toast
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    saveGameToHistory(playerTotals) {
+        try {
+            const gameHistory = this.getGameHistory();
+            
+            // Create new game record
+            const gameRecord = {
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                }),
+                players: playerTotals.map(player => ({
+                    name: player.name,
+                    total: player.total
+                }))
+            };
+            
+            // Add to beginning of history array
+            gameHistory.unshift(gameRecord);
+            
+            // Keep only the last 10 games
+            if (gameHistory.length > 10) {
+                gameHistory.splice(10);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('golfScoreHistory', JSON.stringify(gameHistory));
+            
+            // Update the history display
+            this.updateHistoryDisplay();
+            
+        } catch (error) {
+            console.error('Failed to save game to history:', error);
+        }
+    }
+    
+    getGameHistory() {
+        try {
+            const historyData = localStorage.getItem('golfScoreHistory');
+            return historyData ? JSON.parse(historyData) : [];
+        } catch (error) {
+            console.error('Failed to load game history:', error);
+            return [];
+        }
+    }
+    
+    updateHistoryDisplay() {
+        const historyContainer = document.getElementById('games-history');
+        const clearButton = document.getElementById('clear-history');
+        const gameHistory = this.getGameHistory();
+        
+        if (gameHistory.length === 0) {
+            historyContainer.innerHTML = '<p class="text-gray-500 italic">No previous games yet. Complete a game to see your history!</p>';
+            clearButton.style.display = 'none';
+        } else {
+            // Create formatted history list
+            const historyHTML = gameHistory.map(game => {
+                const playersText = game.players
+                    .map(player => `${player.name}: ${player.total}`)
+                    .join(', ');
+                
+                return `
+                    <div class="history-game-item bg-gray-50 p-3 rounded-lg">
+                        <div class="text-sm font-medium text-gray-800">
+                            ${game.date} – ${playersText}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            historyContainer.innerHTML = historyHTML;
+            clearButton.style.display = 'inline-block';
+        }
+    }
+    
+    clearHistory() {
+        if (confirm('Clear all game history? This action cannot be undone.')) {
+            try {
+                localStorage.removeItem('golfScoreHistory');
+                this.updateHistoryDisplay();
+                this.showToast('Game history cleared successfully.');
+            } catch (error) {
+                console.error('Failed to clear history:', error);
+                alert('Failed to clear history. Please try again.');
+            }
         }
     }
 
@@ -267,6 +604,7 @@ class GolfScoreTracker {
             document.getElementById('game-board').style.display = 'none';
             
             this.updatePlayersList();
+            this.updateHistoryDisplay();
             this.saveToStorage();
             
             // Focus on player name input
@@ -315,6 +653,7 @@ class GolfScoreTracker {
 
     updateUI() {
         this.updatePlayersList();
+        this.updateHistoryDisplay();
         
         // If we have a game in progress, show the game board
         if (this.players.length >= this.minPlayers && Object.keys(this.scores).length > 0) {
