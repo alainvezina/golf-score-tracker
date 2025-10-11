@@ -126,25 +126,25 @@ class GolfScoreTracker {
         this.players.forEach(playerName => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="border-b border-r border-slate-200 px-4 py-3 font-semibold text-slate-700 player-name-cell">${playerName}</td>
+                <td class="border-b-2 border-r-2 border-amber-400 px-4 py-4 font-bold text-emerald-900 player-name-cell font-cinzel bg-amber-50">🎭 ${playerName}</td>
                 ${Array.from({length: this.maxRounds}, (_, round) => 
-                    `<td class="border-b border-r border-slate-200 px-2 py-2 score-cell" data-player="${playerName}" data-round="${round}">
+                    `<td class="border-b-2 border-r-2 border-amber-400 px-2 py-3 score-cell" data-player="${playerName}" data-round="${round}">
                         <div class="score-input-container">
                             <input 
                                 type="number" 
                                 class="score-input" 
-                                placeholder="-"
+                                placeholder="—"
                                 min="-5"
                                 max="20"
                                 data-player="${playerName}" 
                                 data-round="${round}"
                                 value="${this.scores[playerName][round] !== null ? this.scores[playerName][round] : ''}"
                             >
-                            <span class="edit-icon">✏️</span>
+                            <span class="edit-icon">♠️</span>
                         </div>
                     </td>`
                 ).join('')}
-                <td class="border-b border-slate-200 px-4 py-3 text-center font-bold text-slate-800 total-cell bg-blue-50" data-player="${playerName}">
+                <td class="border-b-2 border-amber-400 px-4 py-4 text-center font-bold text-emerald-900 total-cell bg-gradient-to-r from-amber-200 to-amber-100 font-cinzel" data-player="${playerName}">
                     ${this.calculatePlayerTotal(playerName)}
                 </td>
             `;
@@ -512,8 +512,8 @@ class GolfScoreTracker {
                     .join(', ');
                 
                 return `
-                    <div class="history-game-item bg-gray-50 p-3 rounded-lg">
-                        <div class="text-sm font-medium text-gray-800">
+                    <div class="history-game-item">
+                        <div class="text-sm font-bold">
                             ${game.date} – ${playersText}
                         </div>
                     </div>

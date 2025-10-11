@@ -1,12 +1,12 @@
-/* Modern Golf Score Tracker - Flat Design */
+/* Premium Golf Score Tracker - Card Room Theme */
+
+/* Font Imports */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 /* Touch optimization */
 .touch-manipulation {
     touch-action: manipulation;
 }
-
-/* Inter font loading */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* Base styles */
 * {
@@ -20,124 +20,256 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Premium Typography */
 .font-inter {
     font-family: 'Inter', sans-serif;
 }
 
-/* Modern responsive design with improved tap targets */
+.font-cinzel {
+    font-family: 'Cinzel', serif;
+}
+
+/* Card Room Background */
+.card-room-bg {
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(0, 100, 50, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(100, 50, 0, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(0, 50, 100, 0.2) 0%, transparent 50%);
+    background-attachment: fixed;
+}
+
+/* Subtle Card Pattern Overlay */
+.card-pattern {
+    background-image: 
+        url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="%23f59e0b" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/><circle cx="15" cy="15" r="1.5"/><circle cx="45" cy="45" r="1.5"/><circle cx="15" cy="45" r="1"/><circle cx="45" cy="15" r="1"/></g></svg>');
+    background-size: 60px 60px;
+    animation: subtle-drift 20s ease-in-out infinite alternate;
+}
+
+@keyframes subtle-drift {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(5px, 3px); }
+}
+
+/* Premium Card Sections */
+.card-section {
+    background: linear-gradient(135deg, rgba(6, 78, 59, 0.95) 0%, rgba(5, 46, 22, 0.98) 100%);
+    border: 3px solid #f59e0b;
+    border-radius: 24px;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.card-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.5), transparent);
+}
+
+/* Premium responsive design with improved tap targets */
+/* Premium Button Styling */
+.premium-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.premium-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.premium-btn:hover::before {
+    left: 100%;
+}
+
+.premium-btn:active {
+    transform: scale(0.98);
+}
+
+/* Premium Player Tags */
+.player-tag {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(217, 119, 6, 0.9) 100%);
+    border: 2px solid #f59e0b;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    color: #0f172a;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.player-tag::before {
+    content: '♠';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.6;
+    font-size: 0.8rem;
+}
+
+.player-tag:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.player-tag .remove-player {
+    margin-left: 1rem;
+    color: #dc2626;
+    font-weight: 900;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.player-tag .remove-player:hover {
+    background: #dc2626;
+    color: white;
+    transform: scale(1.2) rotate(90deg);
+}
+
+/* Premium Mobile Responsive Design */
 @media (max-width: 768px) {
     .container {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
     
+    .card-section {
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+    
     #score-table {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
     
     #score-table th,
     #score-table td {
         padding: 0.75rem 0.5rem;
-        min-width: 3.5rem;
-        min-height: 44px;
+        min-width: 3rem;
+        min-height: 48px;
     }
     
     .player-name-cell {
-        min-width: 5rem;
-        max-width: 8rem;
+        min-width: 4rem;
+        max-width: 6rem;
         word-wrap: break-word;
+        font-size: 0.85rem;
+    }
+    
+    /* Mobile button optimization */
+    .premium-btn {
+        min-height: 48px;
+        padding: 0.75rem 1.5rem;
         font-size: 0.9rem;
+        min-width: 140px;
     }
     
-    .flex-wrap {
-        gap: 0.75rem;
-    }
-    
-    /* Larger buttons on mobile */
-    button {
-        min-height: 44px;
-        padding: 0.75rem 1rem !important;
-        font-size: 1rem !important;
-        flex: 1;
-        min-width: 120px;
-    }
-    
-    /* Stack game control buttons on very small screens */
+    /* Stack buttons on very small screens */
     @media (max-width: 480px) {
         .flex-wrap {
             flex-direction: column;
         }
         
-        button {
+        .premium-btn {
             width: 100%;
-            flex: none;
-        }
-    }
-    
-    /* Larger input field */
-    #player-name {
-        min-height: 44px;
-        padding: 0.75rem !important;
-        font-size: 1rem !important;
-        touch-action: manipulation;
-    }
-    
-    /* Player setup responsive layout */
-    .flex {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    
-    @media (max-width: 480px) {
-        .flex {
-            flex-direction: column;
+            min-width: auto;
         }
         
-        #player-name {
-            width: 100%;
+        .card-section {
+            padding: 1rem;
+            border-radius: 16px;
+        }
+        
+        h1 {
+            font-size: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
         }
     }
 }
 
-/* Modern score input styling */
+/* Premium Score Input Styling */
 .score-input {
     width: 100%;
-    min-width: 3rem;
-    min-height: 44px;
+    min-width: 3.5rem;
+    min-height: 48px;
     text-align: center;
-    border: 2px solid #e2e8f0;
-    border-radius: 0.75rem;
+    border: 3px solid #d97706;
+    border-radius: 12px;
     padding: 0.75rem 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    background: #ffffff;
-    transition: all 0.2s ease-in-out;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+    color: #0f172a;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     touch-action: manipulation;
-    color: #374151;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.score-input::placeholder {
+    color: rgba(15, 23, 42, 0.5);
+    font-weight: 600;
 }
 
 .score-input:focus {
     outline: none;
-    border-color: #0891b2;
-    background: #f0fdff;
-    transform: scale(1.02);
+    border-color: #f59e0b;
+    background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+    transform: scale(1.05) translateY(-1px);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 8px 16px rgba(245, 158, 11, 0.3),
+        0 0 0 4px rgba(245, 158, 11, 0.1);
 }
 
-.score-input:hover {
-    border-color: #cbd5e1;
-    background: #f8fafc;
+.score-input:hover:not(:focus) {
+    border-color: #f59e0b;
+    transform: scale(1.02);
+    background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
 }
 
 @media (min-width: 768px) {
     .score-input {
         max-width: 4rem;
         padding: 0.5rem;
-        font-size: 0.875rem;
-        min-height: auto;
-    }
-    
-    .score-input:focus {
-        transform: scale(1.05);
+        font-size: 1rem;
+        min-height: 44px;
     }
 }
 
@@ -181,24 +313,33 @@ body {
     transform: scale(1.2);
 }
 
-/* Modern score cell highlighting */
+/* Premium Score Cell Highlighting */
 .score-cell {
     position: relative;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: rgba(255, 255, 255, 0.8);
 }
 
 .score-cell:hover {
-    background-color: #f1f5f9 !important;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%) !important;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
 }
 
 .score-cell.current-round {
-    background-color: #fef3c7 !important;
-    border-left: 4px solid #f59e0b !important;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(217, 119, 6, 0.2) 100%) !important;
+    border: 3px solid #f59e0b !important;
+    animation: current-round-glow 2s ease-in-out infinite alternate;
 }
 
 .score-cell.completed {
-    background-color: #f0fdf4 !important;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.1) 100%) !important;
     border-left: 4px solid #10b981 !important;
+}
+
+@keyframes current-round-glow {
+    0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+    100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.8); }
 }
 
 /* Modern score input container with edit icon */
@@ -240,26 +381,94 @@ body {
     background-color: #dbeafe !important;
 }
 
-/* Modern winner row highlighting - Flat Design */
+/* Premium Winner Row Highlighting */
 .winner-row {
-    background-color: #fbbf24 !important;
-    border: 3px solid #f59e0b !important;
-    border-radius: 0.75rem;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(217, 119, 6, 0.8) 100%) !important;
+    border: 4px solid #f59e0b !important;
+    border-radius: 16px;
+    animation: winner-celebration 3s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.winner-row::before {
+    content: '👑';
+    position: absolute;
+    left: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    animation: crown-slide 3s ease-in-out infinite;
 }
 
 .winner-row .total-cell {
-    background-color: #f59e0b !important;
-    color: #92400e !important;
-    font-size: 1.25rem !important;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: #0f172a !important;
+    font-size: 1.5rem !important;
     font-weight: 900 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
 }
 
 .winner-row td {
-    background-color: #fef3c7 !important;
-    font-weight: 600 !important;
+    background: rgba(254, 243, 199, 0.9) !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Remove winner glow animation to maintain flat design */
+@keyframes winner-celebration {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+@keyframes crown-slide {
+    0%, 100% { left: -30px; }
+    50% { left: 10px; }
+}
+
+/* Premium Game Over Overlay */
+.game-over-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.8) 0%, rgba(0, 50, 25, 0.9) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    backdrop-filter: blur(8px);
+}
+
+.game-over-overlay.show {
+    opacity: 1;
+}
+
+.game-over-message {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.98) 100%);
+    padding: 3rem;
+    border-radius: 2rem;
+    text-align: center;
+    border: 4px solid #f59e0b;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.8) rotateY(-15deg);
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    color: #0f172a;
+    font-family: 'Cinzel', serif;
+}
+
+.game-over-overlay.show .game-over-message {
+    transform: scale(1) rotateY(0deg);
+}
 
 /* Animation for smooth transitions */
 .fade-in {
@@ -457,23 +666,50 @@ button:disabled:hover {
     }
 }
 
-/* Modern Game History Styling */
+/* Premium Game History Styling */
 .history-game-item {
-    transition: all 0.2s ease-in-out;
-    border: 2px solid #e2e8f0;
-    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+    border: 2px solid rgba(245, 158, 11, 0.3);
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
     overflow: hidden;
+    color: #fbbf24;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+}
+
+.history-game-item::before {
+    content: '🃏';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.6;
+    font-size: 1.2rem;
+}
+
+.history-game-item .text-sm {
+    padding-left: 2rem;
 }
 
 .history-game-item:hover {
-    background-color: #f1f5f9 !important;
-    transform: translateY(-1px);
-    border-color: #cbd5e1;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%);
+    transform: translateY(-3px) scale(1.02);
+    border-color: #f59e0b;
+    box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
 }
 
 .history-game-item:first-child {
-    border-left: 4px solid #0891b2;
-    background-color: #f0fdff;
+    border: 3px solid #f59e0b;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.15) 100%);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2);
+}
+
+.history-game-item:first-child::before {
+    content: '🏆';
+    color: #f59e0b;
 }
 
 @media (max-width: 768px) {
