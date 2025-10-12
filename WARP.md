@@ -42,7 +42,23 @@ html5validator --root . --format text
 # JavaScript linting with ESLint (if configured)
 npx eslint script.js
 
+# Basic JavaScript syntax validation
+node -c script.js
+
 # CSS validation (online tool recommended as no build system exists)
+```
+
+### Debugging and Development
+```bash
+# Open browser developer tools and check for console errors
+# The app logs localStorage operations and errors to console
+
+# Test localStorage functionality in browser console:
+# localStorage.getItem('golfScoreTracker')
+# localStorage.getItem('golfScoreHistory')
+
+# Clear all data for testing:
+# localStorage.clear()
 ```
 
 ## Architecture Overview
@@ -134,5 +150,14 @@ The application state is centralized in the `GolfScoreTracker` class:
 Since this is a client-side only application:
 - Manual testing in browser across devices
 - localStorage behavior testing in different browsers
-- Input validation testing with edge cases
+- Input validation testing with edge cases (scores outside -5 to 20 range)
 - Responsive design testing across screen sizes
+- Game state persistence testing (refresh page during gameplay)
+- Test auto-save functionality by checking browser's Application/Storage tab
+
+### Key Files and Their Purposes
+- **`script.js`** (690 lines): Single `GolfScoreTracker` class containing all application logic
+- **`index.html`** (173 lines): Complete UI with embedded Tailwind classes
+- **`styles.css`** (742 lines): Custom CSS for premium card room theme and mobile optimization
+- **`setup-github.sh`**: Helper script for GitHub repository setup with different credentials
+- **`README.md`**: User-facing documentation with setup instructions

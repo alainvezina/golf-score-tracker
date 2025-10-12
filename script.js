@@ -155,7 +155,12 @@ class GolfScoreTracker {
         document.querySelectorAll('.score-input').forEach(input => {
             input.addEventListener('input', (e) => this.updateScore(e));
             input.addEventListener('focus', (e) => e.target.select());
+            input.addEventListener('keydown', (e) => this.handleInputKeydown(e));
+            input.addEventListener('blur', (e) => this.handleInputBlur(e));
         });
+        
+        // Add touch/swipe gestures for mobile
+        this.addTouchGestures();
 
         this.highlightCurrentRound();
     }
@@ -166,36 +171,207 @@ class GolfScoreTracker {
         const round = parseInt(input.dataset.round);
         const value = input.value.trim();
 
-        // Validate input
-        if (value === '') {
-            this.scores[player][round] = null;
-        } else {
-            const numValue = parseInt(value);
-            if (!isNaN(numValue) && numValue >= -5 && numValue <= 20) {
-                this.scores[player][round] = numValue;
+        try {
+            // Validate input
+            if (value === '') {
+                this.scores[player][round] = null;
             } else {
-                input.value = this.scores[player][round] !== null ? this.scores[player][round] : '';
-                return;
+                const numValue = parseInt(value);
+                if (!isNaN(numValue) && numValue >= -5 && numValue <= 20) {
+                    this.scores[player][round] = numValue;
+                    // Auto-advance to next input after successful entry
+                    setTimeout(() => this.focusNextInput(input), 100);
+                } else {
+                    this.showInputError(input, `Score must be between -5 and 20`);
+                    input.value = this.scores[player][round] !== null ? this.scores[player][round] : '';
+                    return;
+                }
             }
+
+            // Update total for this player
+            const totalCell = document.querySelector(`[data-player="${player}"].total-cell`);
+            if (totalCell) {
+                totalCell.textContent = this.calculatePlayerTotal(player);
+            }
+
+            // Check if round is complete and advance if needed
+            this.checkRoundComplete();
+            
+            // Check if game is over
+            this.checkGameOver();
+            
+            this.saveToStorageWithRetry();
+        } catch (error) {
+            console.error('Error updating score:', error);
+            this.showToast('Error saving score. Please try again.');
         }
-
-        // Update total for this player
-        const totalCell = document.querySelector(`[data-player="${player}"].total-cell`);
-        totalCell.textContent = this.calculatePlayerTotal(player);
-
-        // Check if round is complete and advance if needed
-        this.checkRoundComplete();
-        
-        // Check if game is over
-        this.checkGameOver();
-        
-        this.saveToStorage();
     }
 
     calculatePlayerTotal(player) {
         const scores = this.scores[player].filter(score => score !== null);
         if (scores.length === 0) return 0;
         return scores.reduce((total, score) => total + score, 0);
+    }
+    
+    // Enhanced Input Experience Methods
+    handleInputKeydown(event) {
+        const input = event.target;
+        const key = event.key;
+        
+        switch (key) {
+            case 'Enter':
+            case 'Tab':
+                event.preventDefault();
+                this.focusNextInput(input);
+                break;
+            case 'ArrowRight':
+                event.preventDefault();
+                this.focusNextInput(input);
+                break;
+            case 'ArrowLeft':
+                event.preventDefault();
+                this.focusPreviousInput(input);
+                break;
+            case 'ArrowDown':
+                event.preventDefault();
+                this.focusInputBelow(input);
+                break;
+            case 'ArrowUp':
+                event.preventDefault();
+                this.focusInputAbove(input);
+                break;
+            case 'Escape':
+                input.blur();
+                break;
+            case 'Backspace':
+            case 'Delete':
+                if (input.value === '') {
+                    event.preventDefault();
+                    this.focusPreviousInput(input);
+                }
+                break;
+        }
+    }
+    
+    handleInputBlur(event) {
+        const input = event.target;
+        // Clear any error styling when input loses focus
+        this.clearInputError(input);
+    }
+    
+    focusNextInput(currentInput) {
+        const allInputs = Array.from(document.querySelectorAll('.score-input'));
+        const currentIndex = allInputs.indexOf(currentInput);
+        
+        if (currentIndex < allInputs.length - 1) {
+            const nextInput = allInputs[currentIndex + 1];
+            nextInput.focus();
+            nextInput.select();
+        }
+    }
+    
+    focusPreviousInput(currentInput) {
+        const allInputs = Array.from(document.querySelectorAll('.score-input'));
+        const currentIndex = allInputs.indexOf(currentInput);
+        
+        if (currentIndex > 0) {
+            const prevInput = allInputs[currentIndex - 1];
+            prevInput.focus();
+            prevInput.select();
+        }
+    }
+    
+    focusInputBelow(currentInput) {
+        const currentPlayer = currentInput.dataset.player;
+        const currentRound = parseInt(currentInput.dataset.round);
+        const currentPlayerIndex = this.players.indexOf(currentPlayer);
+        
+        if (currentPlayerIndex < this.players.length - 1) {
+            const nextPlayer = this.players[currentPlayerIndex + 1];
+            const belowInput = document.querySelector(`[data-player="${nextPlayer}"][data-round="${currentRound}"]`);
+            if (belowInput) {
+                belowInput.focus();
+                belowInput.select();
+            }
+        }
+    }
+    
+    focusInputAbove(currentInput) {
+        const currentPlayer = currentInput.dataset.player;
+        const currentRound = parseInt(currentInput.dataset.round);
+        const currentPlayerIndex = this.players.indexOf(currentPlayer);
+        
+        if (currentPlayerIndex > 0) {
+            const prevPlayer = this.players[currentPlayerIndex - 1];
+            const aboveInput = document.querySelector(`[data-player="${prevPlayer}"][data-round="${currentRound}"]`);
+            if (aboveInput) {
+                aboveInput.focus();
+                aboveInput.select();
+            }
+        }
+    }
+    
+    addTouchGestures() {
+        const scoreTable = document.getElementById('score-table');
+        if (!scoreTable) return;
+        
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        const minSwipeDistance = 50;
+        const maxSwipeTime = 300;
+        
+        scoreTable.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchStartTime = Date.now();
+        }, { passive: true });
+        
+        scoreTable.addEventListener('touchend', (e) => {
+            if (e.changedTouches.length === 0) return;
+            
+            const touch = e.changedTouches[0];
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+            const touchEndTime = Date.now();
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const deltaTime = touchEndTime - touchStartTime;
+            
+            // Check if it's a valid swipe
+            if (deltaTime > maxSwipeTime) return;
+            
+            const absDeltaX = Math.abs(deltaX);
+            const absDeltaY = Math.abs(deltaY);
+            
+            if (absDeltaX > minSwipeDistance && absDeltaX > absDeltaY) {
+                // Horizontal swipe
+                const focusedInput = document.activeElement;
+                if (focusedInput && focusedInput.classList.contains('score-input')) {
+                    if (deltaX > 0) {
+                        // Swipe right - next input
+                        this.focusNextInput(focusedInput);
+                    } else {
+                        // Swipe left - previous input
+                        this.focusPreviousInput(focusedInput);
+                    }
+                }
+            } else if (absDeltaY > minSwipeDistance && absDeltaY > absDeltaX) {
+                // Vertical swipe
+                const focusedInput = document.activeElement;
+                if (focusedInput && focusedInput.classList.contains('score-input')) {
+                    if (deltaY > 0) {
+                        // Swipe down - input below
+                        this.focusInputBelow(focusedInput);
+                    } else {
+                        // Swipe up - input above
+                        this.focusInputAbove(focusedInput);
+                    }
+                }
+            }
+        }, { passive: true });
     }
 
     checkRoundComplete() {
@@ -436,18 +612,19 @@ class GolfScoreTracker {
         }
     }
     
-    showToast(message) {
+    showToast(message, type = 'info') {
         const toast = document.createElement('div');
-        toast.className = 'toast-message';
+        toast.className = `toast-message toast-${type}`;
         toast.textContent = message;
         document.body.appendChild(toast);
         
         // Show and auto-hide toast
         setTimeout(() => toast.classList.add('show'), 10);
+        const hideDelay = type === 'error' ? 5000 : 3000; // Show errors longer
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        }, hideDelay);
     }
     
     saveGameToHistory(playerTotals) {
@@ -624,6 +801,88 @@ class GolfScoreTracker {
             localStorage.setItem('golfScoreTracker', JSON.stringify(gameState));
         } catch (error) {
             console.error('Failed to save to localStorage:', error);
+            this.handleStorageError(error, 'save');
+        }
+    }
+    
+    // Enhanced Error Handling Methods
+    saveToStorageWithRetry(maxRetries = 3) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                this.saveToStorage();
+                return true; // Success
+            } catch (error) {
+                console.error(`Save attempt ${attempt} failed:`, error);
+                if (attempt === maxRetries) {
+                    this.handleStorageError(error, 'save');
+                    return false;
+                }
+                // Wait a bit before retrying
+                setTimeout(() => {}, 100 * attempt);
+            }
+        }
+        return false;
+    }
+    
+    handleStorageError(error, operation) {
+        let message = '';
+        
+        if (error.name === 'QuotaExceededError') {
+            message = 'Storage space is full. Game data may not be saved. Consider clearing browser data or game history.';
+        } else if (error.name === 'SecurityError') {
+            message = 'Cannot access storage. Please ensure cookies and local storage are enabled.';
+        } else {
+            message = `Failed to ${operation} game data. Your progress may not be saved.`;
+        }
+        
+        this.showToast(message, 'error');
+        
+        // Offer recovery options
+        if (operation === 'save') {
+            setTimeout(() => {
+                if (confirm(`${message}\n\nWould you like to export your current game data as backup?`)) {
+                    this.exportSummary();
+                }
+            }, 2000);
+        }
+    }
+    
+    showInputError(input, message) {
+        // Add error styling
+        input.classList.add('input-error');
+        
+        // Create error tooltip
+        const errorTooltip = document.createElement('div');
+        errorTooltip.className = 'input-error-tooltip';
+        errorTooltip.textContent = message;
+        
+        // Position tooltip
+        const container = input.closest('.score-input-container');
+        if (container) {
+            container.style.position = 'relative';
+            container.appendChild(errorTooltip);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                this.clearInputError(input);
+            }, 3000);
+        }
+        
+        // Shake animation
+        input.style.animation = 'shake 0.5s ease-in-out';
+        setTimeout(() => {
+            input.style.animation = '';
+        }, 500);
+    }
+    
+    clearInputError(input) {
+        input.classList.remove('input-error');
+        const container = input.closest('.score-input-container');
+        if (container) {
+            const tooltip = container.querySelector('.input-error-tooltip');
+            if (tooltip) {
+                tooltip.remove();
+            }
         }
     }
 
@@ -632,22 +891,85 @@ class GolfScoreTracker {
             const saved = localStorage.getItem('golfScoreTracker');
             if (saved) {
                 const gameState = JSON.parse(saved);
-                this.players = gameState.players || [];
-                this.scores = gameState.scores || {};
-                this.currentRound = gameState.currentRound || 1;
                 
-                // Initialize scores for any missing players
-                this.players.forEach(player => {
-                    if (!this.scores[player]) {
-                        this.scores[player] = new Array(this.maxRounds).fill(null);
-                    }
-                });
+                // Validate loaded data structure
+                if (this.validateGameState(gameState)) {
+                    this.players = gameState.players || [];
+                    this.scores = gameState.scores || {};
+                    this.currentRound = gameState.currentRound || 1;
+                    
+                    // Initialize scores for any missing players
+                    this.players.forEach(player => {
+                        if (!this.scores[player]) {
+                            this.scores[player] = new Array(this.maxRounds).fill(null);
+                        }
+                    });
+                    
+                    // Validate scores structure
+                    this.validateAndFixScores();
+                } else {
+                    throw new Error('Invalid game state data');
+                }
             }
         } catch (error) {
             console.error('Failed to load from localStorage:', error);
-            this.players = [];
-            this.scores = {};
-            this.currentRound = 1;
+            this.handleStorageError(error, 'load');
+            this.resetToDefaults();
+            
+            // Offer to restore from backup if available
+            this.offerBackupRestore();
+        }
+    }
+    
+    validateGameState(gameState) {
+        if (!gameState || typeof gameState !== 'object') return false;
+        if (!Array.isArray(gameState.players)) return false;
+        if (!gameState.scores || typeof gameState.scores !== 'object') return false;
+        if (typeof gameState.currentRound !== 'number') return false;
+        if (gameState.currentRound < 1 || gameState.currentRound > this.maxRounds) return false;
+        
+        // Check that all players have score arrays
+        for (const player of gameState.players) {
+            if (!Array.isArray(gameState.scores[player])) return false;
+            if (gameState.scores[player].length !== this.maxRounds) return false;
+        }
+        
+        return true;
+    }
+    
+    validateAndFixScores() {
+        this.players.forEach(player => {
+            if (this.scores[player]) {
+                this.scores[player] = this.scores[player].map(score => {
+                    if (score === null || score === undefined) return null;
+                    const numScore = parseInt(score);
+                    if (isNaN(numScore) || numScore < -5 || numScore > 20) {
+                        console.warn(`Invalid score ${score} for player ${player}, resetting to null`);
+                        return null;
+                    }
+                    return numScore;
+                });
+            }
+        });
+    }
+    
+    resetToDefaults() {
+        this.players = [];
+        this.scores = {};
+        this.currentRound = 1;
+    }
+    
+    offerBackupRestore() {
+        // Check if there's any game history that could be used as backup
+        const history = this.getGameHistory();
+        if (history && history.length > 0) {
+            setTimeout(() => {
+                if (confirm('Your current game data appears corrupted. Would you like to view your game history to manually restore a previous game?')) {
+                    // Show the previous games section
+                    document.getElementById('previous-games').style.display = 'block';
+                    this.updateHistoryDisplay();
+                }
+            }, 1000);
         }
     }
 
@@ -672,19 +994,80 @@ class GolfScoreTracker {
 // Initialize the game when the page loads
 let gameTracker;
 document.addEventListener('DOMContentLoaded', () => {
-    gameTracker = new GolfScoreTracker();
+    try {
+        gameTracker = new GolfScoreTracker();
+    } catch (error) {
+        console.error('Failed to initialize game:', error);
+        alert('Failed to load the game. Please refresh the page and try again.');
+    }
 });
 
-// Prevent form submission on Enter key
+// Enhanced global keyboard shortcuts
 document.addEventListener('keydown', (e) => {
+    // Prevent form submission on Enter key for non-input elements
     if (e.key === 'Enter' && e.target.tagName !== 'INPUT') {
         e.preventDefault();
+    }
+    
+    // Global keyboard shortcuts
+    if (gameTracker && !e.target.classList.contains('score-input')) {
+        switch (e.key) {
+            case 'n':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const newGameBtn = document.getElementById('new-game');
+                    if (newGameBtn && newGameBtn.style.display !== 'none') {
+                        newGameBtn.click();
+                    }
+                }
+                break;
+            case 'e':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const exportBtn = document.getElementById('bottom-export');
+                    if (exportBtn && exportBtn.style.display !== 'none') {
+                        exportBtn.click();
+                    }
+                }
+                break;
+            case 'r':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const resetBtn = document.getElementById('bottom-reset');
+                    if (resetBtn && resetBtn.style.display !== 'none') {
+                        resetBtn.click();
+                    }
+                }
+                break;
+            case 'Escape':
+                // Close any open overlays
+                const overlay = document.querySelector('.game-over-overlay');
+                if (overlay) {
+                    gameTracker.closeGameOver();
+                }
+                break;
+        }
     }
 });
 
 // Handle page visibility changes to save state
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden' && gameTracker) {
-        gameTracker.saveToStorage();
+        try {
+            gameTracker.saveToStorage();
+        } catch (error) {
+            console.error('Failed to save on page hide:', error);
+        }
+    }
+});
+
+// Handle before page unload to save state
+window.addEventListener('beforeunload', () => {
+    if (gameTracker) {
+        try {
+            gameTracker.saveToStorage();
+        } catch (error) {
+            console.error('Failed to save before unload:', error);
+        }
     }
 });
