@@ -88,9 +88,11 @@ class GolfScoreTracker {
         this.players.forEach(name => {
             const playerTag = document.createElement('div');
             playerTag.className = 'player-tag';
+            // Escape HTML to prevent XSS and ensure proper display
+            const escapedName = name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             playerTag.innerHTML = `
-                ${name} 
-                <span class="remove-player" onclick="gameTracker.removePlayer('${name}')" title="Remove player">×</span>
+                <span class="player-name-text">${escapedName}</span>
+                <span class="remove-player" onclick="gameTracker.removePlayer('${name.replace(/'/g, "\\'")}')" title="Remove player">×</span>
             `;
             playersList.appendChild(playerTag);
         });
@@ -179,8 +181,8 @@ class GolfScoreTracker {
                 const numValue = parseInt(value);
                 if (!isNaN(numValue) && numValue >= -5 && numValue <= 20) {
                     this.scores[player][round] = numValue;
-                    // Auto-advance to next input after successful entry
-                    setTimeout(() => this.focusNextInput(input), 100);
+                    // Don't auto-advance on input event - let user finish typing double digits
+                    // Auto-advance only happens on Enter/Tab/Arrow keys
                 } else {
                     this.showInputError(input, `Score must be between -5 and 20`);
                     input.value = this.scores[player][round] !== null ? this.scores[player][round] : '';
@@ -222,7 +224,18 @@ class GolfScoreTracker {
             case 'Enter':
             case 'Tab':
                 event.preventDefault();
-                this.focusNextInput(input);
+                // Validate and save score before moving
+                const value = input.value.trim();
+                if (value !== '') {
+                    const numValue = parseInt(value);
+                    if (!isNaN(numValue) && numValue >= -5 && numValue <= 20) {
+                        // Score is valid, move to next player in same round
+                        this.focusNextInput(input);
+                    }
+                } else {
+                    // Empty value, just move to next
+                    this.focusNextInput(input);
+                }
                 break;
             case 'ArrowRight':
                 event.preventDefault();
@@ -260,24 +273,58 @@ class GolfScoreTracker {
     }
     
     focusNextInput(currentInput) {
-        const allInputs = Array.from(document.querySelectorAll('.score-input'));
-        const currentIndex = allInputs.indexOf(currentInput);
+        // Move to next player in the same round
+        const currentPlayer = currentInput.dataset.player;
+        const currentRound = parseInt(currentInput.dataset.round);
+        const currentPlayerIndex = this.players.indexOf(currentPlayer);
         
-        if (currentIndex < allInputs.length - 1) {
-            const nextInput = allInputs[currentIndex + 1];
-            nextInput.focus();
-            nextInput.select();
+        if (currentPlayerIndex < this.players.length - 1) {
+            // Move to next player in same round
+            const nextPlayer = this.players[currentPlayerIndex + 1];
+            const nextInput = document.querySelector(`.score-input[data-player="${nextPlayer}"][data-round="${currentRound}"]`);
+            if (nextInput) {
+                nextInput.focus();
+                nextInput.select();
+            }
+        } else {
+            // If last player, move to first player of next round (if exists)
+            if (currentRound < this.maxRounds - 1) {
+                const nextRound = currentRound + 1;
+                const firstPlayer = this.players[0];
+                const nextInput = document.querySelector(`.score-input[data-player="${firstPlayer}"][data-round="${nextRound}"]`);
+                if (nextInput) {
+                    nextInput.focus();
+                    nextInput.select();
+                }
+            }
         }
     }
     
     focusPreviousInput(currentInput) {
-        const allInputs = Array.from(document.querySelectorAll('.score-input'));
-        const currentIndex = allInputs.indexOf(currentInput);
+        // Move to previous player in the same round
+        const currentPlayer = currentInput.dataset.player;
+        const currentRound = parseInt(currentInput.dataset.round);
+        const currentPlayerIndex = this.players.indexOf(currentPlayer);
         
-        if (currentIndex > 0) {
-            const prevInput = allInputs[currentIndex - 1];
-            prevInput.focus();
-            prevInput.select();
+        if (currentPlayerIndex > 0) {
+            // Move to previous player in same round
+            const prevPlayer = this.players[currentPlayerIndex - 1];
+            const prevInput = document.querySelector(`.score-input[data-player="${prevPlayer}"][data-round="${currentRound}"]`);
+            if (prevInput) {
+                prevInput.focus();
+                prevInput.select();
+            }
+        } else {
+            // If first player, move to last player of previous round (if exists)
+            if (currentRound > 0) {
+                const prevRound = currentRound - 1;
+                const lastPlayer = this.players[this.players.length - 1];
+                const prevInput = document.querySelector(`.score-input[data-player="${lastPlayer}"][data-round="${prevRound}"]`);
+                if (prevInput) {
+                    prevInput.focus();
+                    prevInput.select();
+                }
+            }
         }
     }
     
@@ -288,7 +335,7 @@ class GolfScoreTracker {
         
         if (currentPlayerIndex < this.players.length - 1) {
             const nextPlayer = this.players[currentPlayerIndex + 1];
-            const belowInput = document.querySelector(`[data-player="${nextPlayer}"][data-round="${currentRound}"]`);
+            const belowInput = document.querySelector(`.score-input[data-player="${nextPlayer}"][data-round="${currentRound}"]`);
             if (belowInput) {
                 belowInput.focus();
                 belowInput.select();
@@ -303,7 +350,7 @@ class GolfScoreTracker {
         
         if (currentPlayerIndex > 0) {
             const prevPlayer = this.players[currentPlayerIndex - 1];
-            const aboveInput = document.querySelector(`[data-player="${prevPlayer}"][data-round="${currentRound}"]`);
+            const aboveInput = document.querySelector(`.score-input[data-player="${prevPlayer}"][data-round="${currentRound}"]`);
             if (aboveInput) {
                 aboveInput.focus();
                 aboveInput.select();
@@ -427,8 +474,13 @@ class GolfScoreTracker {
         
         // Highlight winner row(s)
         winners.forEach(winner => {
-            const winnerRow = document.querySelector(`[data-player="${winner.name}"].total-cell`).parentElement;
-            winnerRow.classList.add('winner-row');
+            const totalCell = document.querySelector(`[data-player="${winner.name}"].total-cell`);
+            if (totalCell) {
+                const winnerRow = totalCell.parentElement;
+                if (winnerRow) {
+                    winnerRow.classList.add('winner-row');
+                }
+            }
         });
         
         // Show game over message
@@ -719,7 +771,7 @@ class GolfScoreTracker {
         document.getElementById('current-round').textContent = this.currentRound;
         
         // Focus on first player's input for current round
-        const firstPlayerInput = document.querySelector(`[data-player="${this.players[0]}"][data-round="${this.currentRound - 1}"]`);
+        const firstPlayerInput = document.querySelector(`.score-input[data-player="${this.players[0]}"][data-round="${this.currentRound - 1}"]`);
         if (firstPlayerInput && !firstPlayerInput.value) {
             setTimeout(() => firstPlayerInput.focus(), 100);
         }
@@ -734,28 +786,77 @@ class GolfScoreTracker {
         // Highlight current round and completed rounds
         for (let round = 0; round < this.maxRounds; round++) {
             this.players.forEach(player => {
-                const cell = document.querySelector(`[data-player="${player}"][data-round="${round}"]`).parentNode;
-                if (round < this.currentRound - 1) {
-                    cell.classList.add('completed');
-                } else if (round === this.currentRound - 1) {
-                    cell.classList.add('current-round');
+                const cell = document.querySelector(`.score-cell[data-player="${player}"][data-round="${round}"]`);
+                if (cell) {
+                    if (round < this.currentRound - 1) {
+                        cell.classList.add('completed');
+                    } else if (round === this.currentRound - 1) {
+                        cell.classList.add('current-round');
+                    }
                 }
             });
         }
     }
 
     clearRound() {
+        if (!this.players || this.players.length === 0) {
+            this.showToast('No players in the game.', 'error');
+            return;
+        }
+        
         if (confirm(`Clear all scores for round ${this.currentRound}?`)) {
-            this.players.forEach(player => {
-                this.scores[player][this.currentRound - 1] = null;
-                const input = document.querySelector(`[data-player="${player}"][data-round="${this.currentRound - 1}"]`);
-                if (input) input.value = '';
+            try {
+                const roundIndex = this.currentRound - 1;
                 
-                // Update total
-                const totalCell = document.querySelector(`[data-player="${player}"].total-cell`);
-                totalCell.textContent = this.calculatePlayerTotal(player);
-            });
-            this.saveToStorage();
+                if (roundIndex < 0 || roundIndex >= this.maxRounds) {
+                    this.showToast('Invalid round number.', 'error');
+                    return;
+                }
+                
+                this.players.forEach(player => {
+                    // Clear the score in the data
+                    if (this.scores[player] && this.scores[player][roundIndex] !== undefined) {
+                        this.scores[player][roundIndex] = null;
+                    }
+                    
+                    // Clear the input field - try multiple selector strategies
+                    let input = document.querySelector(`.score-input[data-player="${player}"][data-round="${roundIndex}"]`);
+                    
+                    // Fallback: try finding by td then input
+                    if (!input) {
+                        const cell = document.querySelector(`.score-cell[data-player="${player}"][data-round="${roundIndex}"]`);
+                        if (cell) {
+                            input = cell.querySelector('.score-input');
+                        }
+                    }
+                    
+                    if (input) {
+                        input.value = '';
+                        // Clear any error styling
+                        this.clearInputError(input);
+                    } else {
+                        console.warn(`Could not find input for player ${player}, round ${roundIndex}`);
+                    }
+                    
+                    // Update total
+                    const totalCell = document.querySelector(`[data-player="${player}"].total-cell`);
+                    if (totalCell) {
+                        totalCell.textContent = this.calculatePlayerTotal(player);
+                    }
+                });
+                
+                // Refresh the round highlighting to ensure UI is updated
+                this.highlightCurrentRound();
+                
+                // Save to storage
+                this.saveToStorage();
+                
+                // Show confirmation
+                this.showToast(`Round ${this.currentRound} cleared successfully.`, 'success');
+            } catch (error) {
+                console.error('Error clearing round:', error);
+                this.showToast('Error clearing round. Please try again.', 'error');
+            }
         }
     }
 

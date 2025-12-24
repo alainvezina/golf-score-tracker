@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Golf Score Tracker - Premium Card Room</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +18,7 @@
         <div class="card-pattern absolute inset-0"></div>
     </div>
     
-    <div class="container mx-auto px-4 py-6 max-w-6xl pb-24 relative z-10">
+    <div class="container mx-auto px-4 py-6 max-w-6xl pb-24 relative z-10 safe-area-top safe-area-bottom">
         <!-- Elegant Header -->
         <header class="text-center mb-10">
             <div class="bg-gradient-to-r from-amber-50 via-amber-25 to-amber-50 border-2 border-amber-400 rounded-3xl p-8 mb-6 shadow-2xl backdrop-blur-sm bg-opacity-95">
@@ -61,7 +63,7 @@
                     🎮 Start Game
                 </button>
             </div>
-            <div id="players-list" class="flex flex-wrap gap-3"></div>
+            <div id="players-list" class="flex flex-wrap gap-3 items-center"></div>
         </div>
 
         <!-- Previous Games Section -->
@@ -149,7 +151,7 @@
     </div>
 
     <!-- Premium Fixed Bottom Navigation -->
-    <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 border-t-4 border-amber-400 p-4 z-50 shadow-2xl" style="display: none;">
+    <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 border-t-4 border-amber-400 p-4 z-50 shadow-2xl safe-area-bottom-nav" style="display: none;">
         <div class="container mx-auto max-w-6xl">
             <div class="flex gap-4 justify-center">
                 <button 

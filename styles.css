@@ -3,6 +3,36 @@
 /* Font Imports */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
+/* iPhone 15 Safe Area Support */
+@supports (padding: max(0px)) {
+    .safe-area-top {
+        padding-top: max(1.5rem, env(safe-area-inset-top));
+    }
+    
+    .safe-area-bottom {
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
+    
+    .safe-area-bottom-nav {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+}
+
+/* Fallback for browsers without safe-area support */
+@supports not (padding: max(0px)) {
+    .safe-area-top {
+        padding-top: 1.5rem;
+    }
+    
+    .safe-area-bottom {
+        padding-bottom: 1.5rem;
+    }
+    
+    .safe-area-bottom-nav {
+        padding-bottom: 1rem;
+    }
+}
+
 /* Touch optimization */
 .touch-manipulation {
     touch-action: manipulation;
@@ -18,6 +48,11 @@ body {
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* iPhone 15 safe area support */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* Premium Typography */
@@ -76,7 +111,7 @@ body {
 }
 
 /* Premium responsive design with improved tap targets */
-/* Premium Button Styling */
+/* Premium Button Styling - iPhone 15 Optimized */
 .premium-btn {
     position: relative;
     overflow: hidden;
@@ -84,6 +119,10 @@ body {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
     border: 2px solid rgba(255, 255, 255, 0.2);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    -webkit-tap-highlight-color: rgba(245, 158, 11, 0.3);
+    touch-action: manipulation;
+    cursor: pointer;
+    user-select: none;
 }
 
 .premium-btn::before {
@@ -105,7 +144,7 @@ body {
     transform: scale(0.98);
 }
 
-/* Premium Player Tags */
+/* Premium Player Tags - iPhone 15 Optimized */
 .player-tag {
     background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(217, 119, 6, 0.9) 100%);
     border: 2px solid #f59e0b;
@@ -119,7 +158,14 @@ body {
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
     transition: all 0.3s ease;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
+    -webkit-tap-highlight-color: rgba(245, 158, 11, 0.3);
+    touch-action: manipulation;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    flex-shrink: 0;
 }
 
 .player-tag::before {
@@ -130,6 +176,30 @@ body {
     transform: translateY(-50%);
     opacity: 0.6;
     font-size: 0.8rem;
+    z-index: 1;
+}
+
+/* Ensure player name text is visible and not truncated */
+.player-tag {
+    flex-shrink: 0;
+    min-width: fit-content;
+}
+
+/* Player name text styling - ensure it's not truncated */
+.player-tag .player-name-text {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+    max-width: none;
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+/* Ensure players list container allows wrapping */
+#players-list {
+    width: 100%;
+    min-width: 0;
 }
 
 .player-tag:hover {
@@ -143,11 +213,19 @@ body {
     margin-left: 1rem;
     color: #dc2626;
     font-weight: 900;
-    padding: 0.25rem 0.5rem;
+    padding: 0.375rem 0.625rem;
     border-radius: 50%;
     transition: all 0.2s ease;
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(220, 38, 38, 0.3);
+    min-width: 32px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: rgba(220, 38, 38, 0.3);
+    touch-action: manipulation;
+    cursor: pointer;
 }
 
 .player-tag .remove-player:hover {
@@ -156,11 +234,13 @@ body {
     transform: scale(1.2) rotate(90deg);
 }
 
-/* Premium Mobile Responsive Design */
+/* Premium Mobile Responsive Design - iPhone 15 Optimized */
 @media (max-width: 768px) {
     .container {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-top: max(1rem, env(safe-area-inset-top, 1rem));
+        padding-bottom: max(6rem, env(safe-area-inset-bottom, 6rem));
     }
     
     .card-section {
@@ -169,30 +249,73 @@ body {
         border-radius: 20px;
     }
     
+    /* Header optimizations for iPhone */
+    header {
+        margin-bottom: 1.5rem;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+    
+    header .bg-gradient-to-r {
+        padding: 1.5rem 1rem;
+    }
+    
+    /* Score table optimizations */
     #score-table {
-        font-size: 0.9rem;
-    }
-    
-    #score-table th,
-    #score-table td {
-        padding: 0.75rem 0.5rem;
-        min-width: 3rem;
-        min-height: 48px;
-    }
-    
-    .player-name-cell {
-        min-width: 4rem;
-        max-width: 6rem;
-        word-wrap: break-word;
         font-size: 0.85rem;
     }
     
-    /* Mobile button optimization */
+    #score-table th {
+        padding: 0.875rem 0.375rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    
+    #score-table td {
+        padding: 0.75rem 0.375rem;
+        min-width: 2.75rem;
+        min-height: 56px;
+    }
+    
+    .player-name-cell {
+        min-width: 5rem;
+        max-width: 7rem;
+        word-wrap: break-word;
+        font-size: 0.8rem;
+        padding: 0.75rem 0.5rem !important;
+        line-height: 1.3;
+    }
+    
+    /* Enhanced mobile button optimization - iPhone 15 */
     .premium-btn {
-        min-height: 48px;
-        padding: 0.75rem 1.5rem;
-        font-size: 0.9rem;
+        min-height: 56px;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
         min-width: 140px;
+        -webkit-tap-highlight-color: rgba(245, 158, 11, 0.3);
+        touch-action: manipulation;
+    }
+    
+    /* Input field improvements for iPhone */
+    .score-input {
+        min-height: 56px;
+        font-size: 1.2rem;
+        padding: 0.875rem 0.5rem;
+        -webkit-tap-highlight-color: rgba(245, 158, 11, 0.3);
+    }
+    
+    /* Better spacing for player setup */
+    #player-setup .flex-col {
+        gap: 0.75rem;
+    }
+    
+    #player-name {
+        min-height: 56px;
+        font-size: 1rem;
+        padding: 1rem 1.25rem;
     }
     
     /* Stack buttons on very small screens */
@@ -204,39 +327,69 @@ body {
         .premium-btn {
             width: 100%;
             min-width: auto;
+            min-height: 56px;
         }
         
         .card-section {
-            padding: 1rem;
+            padding: 1.25rem;
             border-radius: 16px;
         }
         
-        h1 {
-            font-size: 2rem;
+        header h1 {
+            font-size: 1.75rem;
         }
         
         h2 {
             font-size: 1.5rem;
         }
+        
+        #score-table th,
+        #score-table td {
+            padding: 0.625rem 0.25rem;
+            font-size: 0.75rem;
+        }
+        
+        .player-name-cell {
+            font-size: 0.75rem;
+            min-width: 4.5rem;
+            max-width: 6rem;
+        }
     }
 }
 
-/* Premium Score Input Styling */
+/* iPhone 15 Pro Max and larger screens */
+@media (min-width: 430px) and (max-width: 768px) {
+    #score-table th,
+    #score-table td {
+        padding: 0.875rem 0.5rem;
+        min-width: 3rem;
+    }
+    
+    .player-name-cell {
+        min-width: 5.5rem;
+        max-width: 7.5rem;
+    }
+}
+
+/* Premium Score Input Styling - iPhone 15 Optimized */
 .score-input {
     width: 100%;
     min-width: 3.5rem;
-    min-height: 48px;
+    min-height: 56px;
     text-align: center;
     border: 3px solid #d97706;
     border-radius: 12px;
-    padding: 0.75rem 0.5rem;
-    font-size: 1.1rem;
+    padding: 0.875rem 0.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
     font-family: 'Cinzel', serif;
     background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
     color: #0f172a;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(245, 158, 11, 0.3);
+    -webkit-appearance: none;
+    appearance: none;
     box-shadow: 
         inset 0 2px 4px rgba(0, 0, 0, 0.1),
         0 2px 4px rgba(0, 0, 0, 0.2);
@@ -269,7 +422,37 @@ body {
         max-width: 4rem;
         padding: 0.5rem;
         font-size: 1rem;
-        min-height: 44px;
+        min-height: 48px;
+    }
+}
+
+/* Bottom Navigation - iPhone 15 Safe Area Support */
+#bottom-nav {
+    padding-left: max(1rem, env(safe-area-inset-left, 1rem));
+    padding-right: max(1rem, env(safe-area-inset-right, 1rem));
+}
+
+#bottom-nav .premium-btn {
+    min-height: 56px;
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+    -webkit-tap-highlight-color: rgba(245, 158, 11, 0.3);
+}
+
+@media (max-width: 768px) {
+    #bottom-nav {
+        padding: 1rem;
+        padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
+    }
+    
+    #bottom-nav .premium-btn {
+        min-height: 56px;
+        font-size: 0.95rem;
+        padding: 0.875rem 1.25rem;
+    }
+    
+    #bottom-nav .flex {
+        gap: 0.75rem;
     }
 }
 
@@ -278,19 +461,7 @@ body {
     background: #fef2f2;
 }
 
-/* Modern player tag styling */
-.player-tag {
-    display: inline-flex;
-    align-items: center;
-    background-color: #f0fdff;
-    border: 2px solid #a7f3d0;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #0f766e;
-    transition: all 0.2s ease-in-out;
-}
+/* Modern player tag styling - REMOVED: conflicting with premium player tag styling above */
 
 .player-tag:hover {
     background-color: #ecfeff;
@@ -490,23 +661,39 @@ button:disabled:hover {
     transform: none;
 }
 
-/* Custom scrollbar for table */
+/* Custom scrollbar for table - iPhone 15 optimized */
+.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
 .overflow-x-auto::-webkit-scrollbar {
-    height: 8px;
+    height: 12px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-track {
-    background: #f3f4f6;
-    border-radius: 4px;
+    background: rgba(243, 244, 246, 0.8);
+    border-radius: 6px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 4px;
+    background: rgba(209, 213, 219, 0.8);
+    border-radius: 6px;
+    border: 2px solid rgba(243, 244, 246, 0.8);
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
+    background: rgba(156, 163, 175, 0.9);
+}
+
+@media (max-width: 768px) {
+    .overflow-x-auto {
+        padding-bottom: 0.5rem;
+    }
+    
+    .overflow-x-auto::-webkit-scrollbar {
+        height: 8px;
+    }
 }
 
 /* Loading state styles */
@@ -807,14 +994,15 @@ button:disabled:hover {
     transform: translateX(-50%) translateY(0);
 }
 
-/* Mobile responsive toast */
+/* Mobile responsive toast - iPhone 15 Safe Area */
 @media (max-width: 768px) {
     .toast-message {
-        bottom: 1rem;
-        left: 1rem;
-        right: 1rem;
+        bottom: max(1rem, calc(1rem + env(safe-area-inset-bottom, 0px)));
+        left: max(1rem, env(safe-area-inset-left, 1rem));
+        right: max(1rem, env(safe-area-inset-right, 1rem));
         max-width: none;
         transform: translateY(100%);
+        margin-bottom: max(5rem, calc(5rem + env(safe-area-inset-bottom, 0px)));
     }
     
     .toast-message.show {
