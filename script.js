@@ -916,6 +916,9 @@ class GolfScoreTracker {
             versionNumber.textContent = this.version;
         }
         
+        // Update page title with version
+        document.title = `Golf Score Tracker - Premium Card Room v${this.version}`;
+        
         // Show the version section
         const versionSection = document.getElementById('game-version');
         if (versionSection) {
