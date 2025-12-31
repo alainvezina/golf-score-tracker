@@ -8,6 +8,7 @@ class GolfScoreTracker {
         this.maxRounds = 9;
         this.maxPlayers = 6;
         this.minPlayers = 2;
+        this.version = '1.0.0';
         
         this.init();
     }
@@ -119,6 +120,8 @@ class GolfScoreTracker {
         
         this.createScoreTable();
         this.updateCurrentRound();
+        this.updateVersionDisplay();
+        this.saveToStorage();
     }
 
     createScoreTable() {
@@ -895,7 +898,8 @@ class GolfScoreTracker {
             players: this.players,
             scores: this.scores,
             currentRound: this.currentRound,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            version: this.version
         };
         
         try {
@@ -903,6 +907,19 @@ class GolfScoreTracker {
         } catch (error) {
             console.error('Failed to save to localStorage:', error);
             this.handleStorageError(error, 'save');
+        }
+    }
+    
+    updateVersionDisplay() {
+        const versionNumber = document.getElementById('version-number');
+        if (versionNumber) {
+            versionNumber.textContent = this.version;
+        }
+        
+        // Show the version section
+        const versionSection = document.getElementById('game-version');
+        if (versionSection) {
+            versionSection.style.display = 'block';
         }
     }
     
@@ -1008,6 +1025,11 @@ class GolfScoreTracker {
                     
                     // Validate scores structure
                     this.validateAndFixScores();
+                    
+                    // Update version if it exists in saved state
+                    if (gameState.version) {
+                        this.version = gameState.version;
+                    }
                 } else {
                     throw new Error('Invalid game state data');
                 }
@@ -1089,6 +1111,9 @@ class GolfScoreTracker {
                 this.startGame();
             }
         }
+        
+        // Display version
+        this.updateVersionDisplay();
     }
 }
 
