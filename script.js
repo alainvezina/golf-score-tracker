@@ -136,8 +136,8 @@ class GolfScoreTracker {
                                 type="number" 
                                 class="score-input" 
                                 placeholder="—"
-                                min="-5"
-                                max="20"
+                                min="-48"
+                                max="48"
                                 data-player="${playerName}" 
                                 data-round="${round}"
                                 value="${this.scores[playerName][round] !== null ? this.scores[playerName][round] : ''}"
@@ -179,12 +179,12 @@ class GolfScoreTracker {
                 this.scores[player][round] = null;
             } else {
                 const numValue = parseInt(value);
-                if (!isNaN(numValue) && numValue >= -5 && numValue <= 20) {
+                if (!isNaN(numValue) && numValue >= -48 && numValue <= 48) {
                     this.scores[player][round] = numValue;
                     // Don't auto-advance on input event - let user finish typing double digits
                     // Auto-advance only happens on Enter/Tab/Arrow keys
                 } else {
-                    this.showInputError(input, `Score must be between -5 and 20`);
+                    this.showInputError(input, `Score must be between -48 and 48`);
                     input.value = this.scores[player][round] !== null ? this.scores[player][round] : '';
                     return;
                 }
@@ -228,7 +228,7 @@ class GolfScoreTracker {
                 const value = input.value.trim();
                 if (value !== '') {
                     const numValue = parseInt(value);
-                    if (!isNaN(numValue) && numValue >= -5 && numValue <= 20) {
+                    if (!isNaN(numValue) && numValue >= -48 && numValue <= 48) {
                         // Score is valid, move to next player in same round
                         this.focusNextInput(input);
                     }
@@ -1044,7 +1044,7 @@ class GolfScoreTracker {
                 this.scores[player] = this.scores[player].map(score => {
                     if (score === null || score === undefined) return null;
                     const numScore = parseInt(score);
-                    if (isNaN(numScore) || numScore < -5 || numScore > 20) {
+                    if (isNaN(numScore) || numScore < -48 || numScore > 48) {
                         console.warn(`Invalid score ${score} for player ${player}, resetting to null`);
                         return null;
                     }
