@@ -27,15 +27,41 @@ class GolfScoreTracker {
         });
         document.getElementById('start-game').addEventListener('click', () => this.startGame());
 
-        // Game control events
-        document.getElementById('clear-round').addEventListener('click', () => this.clearRound());
-        document.getElementById('clear-all').addEventListener('click', () => this.clearAllScores());
-        document.getElementById('new-game').addEventListener('click', () => this.newGame());
-        document.getElementById('clear-history').addEventListener('click', () => this.clearHistory());
-        
-        // Bottom navigation events
-        document.getElementById('bottom-reset').addEventListener('click', () => this.resetGame());
-        document.getElementById('bottom-export').addEventListener('click', () => this.exportSummary());
+        // Burger menu (game actions) - use class so menu open/close is reliable
+        const burgerBtn = document.getElementById('game-burger-btn');
+        const burgerMenu = document.getElementById('game-burger-menu');
+        if (burgerBtn && burgerMenu) {
+            burgerBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const isOpen = burgerMenu.classList.toggle('game-burger-menu-open');
+                burgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+            document.getElementById('burger-clear-round').addEventListener('click', () => { this.closeBurger(); this.clearRound(); });
+            document.getElementById('burger-clear-all').addEventListener('click', () => { this.closeBurger(); this.clearAllScores(); });
+            document.getElementById('burger-new-game').addEventListener('click', () => { this.closeBurger(); this.newGame(); });
+            document.getElementById('burger-reset').addEventListener('click', () => { this.closeBurger(); this.resetGame(); });
+            document.getElementById('burger-export').addEventListener('click', () => { this.closeBurger(); this.exportSummary(); });
+            document.addEventListener('click', (e) => {
+                if (burgerMenu.classList.contains('game-burger-menu-open') && !burgerBtn.contains(e.target) && !burgerMenu.contains(e.target)) this.closeBurger();
+            });
+        }
+
+        // Confirmation modal
+        const confirmModal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-modal-ok').addEventListener('click', () => {
+            if (this._confirmCallback) this._confirmCallback();
+            this._confirmCallback = null;
+            confirmModal.hidden = true;
+        });
+        document.getElementById('confirm-modal-cancel').addEventListener('click', () => {
+            this._confirmCallback = null;
+            confirmModal.hidden = true;
+        });
+        confirmModal.querySelector('.confirm-modal-backdrop').addEventListener('click', () => {
+            this._confirmCallback = null;
+            confirmModal.hidden = true;
+        });
 
         // Load existing game state
         if (this.players.length >= this.minPlayers) {
@@ -48,17 +74,19 @@ class GolfScoreTracker {
         const name = nameInput.value.trim();
 
         if (!name) {
-            alert('Please enter a player name');
+            this.showToast('Please enter a player name', 'warning');
+            nameInput.focus();
             return;
         }
 
         if (this.players.includes(name)) {
-            alert('Player name already exists');
+            this.showToast('Player name already exists', 'warning');
+            nameInput.focus();
             return;
         }
 
         if (this.players.length >= this.maxPlayers) {
-            alert(`Maximum ${this.maxPlayers} players allowed`);
+            this.showToast(`Maximum ${this.maxPlayers} players allowed`, 'warning');
             return;
         }
 
@@ -108,14 +136,15 @@ class GolfScoreTracker {
 
     startGame() {
         if (this.players.length < this.minPlayers) {
-            alert(`Need at least ${this.minPlayers} players to start`);
+            this.showToast(`Need at least ${this.minPlayers} players to start`, 'warning');
             return;
         }
 
         document.getElementById('player-setup').style.display = 'none';
-        document.getElementById('previous-games').style.display = 'none';
         document.getElementById('game-board').style.display = 'block';
-        document.getElementById('bottom-nav').style.display = 'block';
+        document.body.classList.add('game-active');
+        const burgerWrap = document.getElementById('game-burger-wrap');
+        if (burgerWrap) burgerWrap.style.display = 'block';
         document.getElementById('game-board').classList.add('fade-in');
         
         this.createScoreTable();
@@ -125,15 +154,30 @@ class GolfScoreTracker {
     }
 
     createScoreTable() {
+        const roundLabels = ['♠️ R1', '♥️ R2', '♦️ R3', '♣️ R4', '♠️ R5', '♥️ R6', '♦️ R7', '♣️ R8', '🎆 R9'];
+        const theadRow = document.getElementById('score-table-header-row');
         const tbody = document.getElementById('score-table-body');
+
+        // Header: one row with Round label + player name (total) per column — always visible
+        theadRow.innerHTML = `
+            <th class="sticky-round-col border-b-2 border-r-2 border-amber-400 px-2 py-2 text-left font-bold text-amber-100 font-cinzel text-sm">🎯</th>
+            ${this.players.map(playerName =>
+                `<th class="border-b-2 border-r-2 border-amber-400 px-2 py-2 text-center font-bold font-cinzel player-name-total-cell bg-gradient-to-r from-emerald-800 to-emerald-700 text-amber-100" data-player="${playerName}">
+                    <span class="player-header-name">${playerName}</span>
+                    <span class="player-header-total" data-player="${playerName}">(${this.calculatePlayerTotal(playerName)})</span>
+                </th>`
+            ).join('')}
+        `;
+
         tbody.innerHTML = '';
 
-        this.players.forEach(playerName => {
+        // Body: one row per round (R1..R9) then Total row
+        for (let round = 0; round < this.maxRounds; round++) {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="border-b-2 border-r-2 border-amber-400 px-4 py-4 font-bold text-emerald-900 player-name-cell font-cinzel bg-amber-50">🎭 ${playerName}</td>
-                ${Array.from({length: this.maxRounds}, (_, round) => 
-                    `<td class="border-b-2 border-r-2 border-amber-400 px-2 py-3 score-cell" data-player="${playerName}" data-round="${round}">
+                <td class="border-b-2 border-r-2 border-amber-400 px-2 py-2 font-bold text-emerald-900 sticky-round-cell font-cinzel bg-amber-50 text-sm">${roundLabels[round]}</td>
+                ${this.players.map(playerName =>
+                    `<td class="border-b-2 border-r-2 border-amber-400 px-1 py-2 score-cell" data-player="${playerName}" data-round="${round}">
                         <div class="score-input-container">
                             <input 
                                 type="number" 
@@ -149,12 +193,22 @@ class GolfScoreTracker {
                         </div>
                     </td>`
                 ).join('')}
-                <td class="border-b-2 border-amber-400 px-4 py-4 text-center font-bold text-emerald-900 total-cell bg-gradient-to-r from-amber-200 to-amber-100 font-cinzel" data-player="${playerName}">
-                    ${this.calculatePlayerTotal(playerName)}
-                </td>
             `;
             tbody.appendChild(row);
-        });
+        }
+
+        // Total row
+        const totalRow = document.createElement('tr');
+        totalRow.className = 'total-row';
+        totalRow.innerHTML = `
+            <td class="border-b-2 border-r-2 border-amber-400 px-2 py-2 font-bold text-emerald-900 sticky-round-cell font-cinzel bg-gradient-to-r from-amber-200 to-amber-100 text-sm">🏅</td>
+            ${this.players.map(playerName =>
+                `<td class="border-b-2 border-amber-400 px-2 py-2 text-center font-bold text-emerald-900 total-cell bg-gradient-to-r from-amber-200 to-amber-100 font-cinzel text-sm" data-player="${playerName}">
+                    ${this.calculatePlayerTotal(playerName)}
+                </td>`
+            ).join('')}
+        `;
+        tbody.appendChild(totalRow);
 
         // Bind score input events
         document.querySelectorAll('.score-input').forEach(input => {
@@ -168,6 +222,65 @@ class GolfScoreTracker {
         this.addTouchGestures();
 
         this.highlightCurrentRound();
+        this.updateLeaderIndicator();
+        this.updateRoundProgress();
+        this.updateLeadingSummary();
+    }
+
+    updateRoundProgress() {
+        let container = document.getElementById('round-progress');
+        if (!container) return;
+        if (!container.querySelector('.round-dot')) {
+            for (let i = 1; i <= this.maxRounds; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'round-dot';
+                dot.setAttribute('data-round', i);
+                dot.setAttribute('title', `Round ${i}`);
+                container.appendChild(dot);
+            }
+        }
+        container.querySelectorAll('.round-dot').forEach((dot, i) => {
+            const r = i + 1;
+            dot.classList.remove('done', 'current');
+            if (r < this.currentRound) dot.classList.add('done');
+            else if (r === this.currentRound) dot.classList.add('current');
+        });
+    }
+
+    updateLeadingSummary() {
+        const el = document.getElementById('leading-summary');
+        if (!el) return;
+        const totals = this.players.map(p => ({ name: p, total: this.calculatePlayerTotal(p) }));
+        const hasScores = totals.some(t => t.total > 0 || this.scores[t.name].some(s => s !== null));
+        if (!hasScores) {
+            el.innerHTML = '<span class="leading-label">Leading:</span> —';
+            return;
+        }
+        const minTotal = Math.min(...totals.map(t => t.total));
+        const leaders = totals.filter(t => t.total === minTotal);
+        if (leaders.length === 1) {
+            el.innerHTML = `<span class="leading-label">Leading:</span> ${leaders[0].name} (${leaders[0].total})`;
+        } else {
+            el.innerHTML = `<span class="leading-label">Tie:</span> ${leaders.map(l => `${l.name} (${l.total})`).join(', ')}`;
+        }
+    }
+
+    updateLeaderIndicator() {
+        const totals = this.players.map(p => ({ name: p, total: this.calculatePlayerTotal(p) }));
+        const minTotal = Math.min(...totals.map(t => t.total));
+        const hasScores = totals.some(t => t.total > 0 || this.scores[t.name].some(s => s !== null));
+        const leaders = hasScores ? totals.filter(t => t.total === minTotal).map(t => t.name) : [];
+
+        this.players.forEach(playerName => {
+            const isLeading = leaders.includes(playerName);
+            document.querySelectorAll(`[data-player="${playerName}"].total-cell, .player-header-total[data-player="${playerName}"]`).forEach(el => {
+                el.classList.toggle('is-leading', isLeading);
+            });
+            document.querySelectorAll(`.player-name-total-cell[data-player="${playerName}"], td.total-cell[data-player="${playerName}"]`).forEach(el => {
+                el.classList.toggle('is-leading', isLeading);
+            });
+        });
+        this.updateLeadingSummary();
     }
 
     updateScore(event) {
@@ -193,11 +306,14 @@ class GolfScoreTracker {
                 }
             }
 
-            // Update total for this player
+            // Update total for this player (footer row + header next to name)
+            const total = this.calculatePlayerTotal(player);
             const totalCell = document.querySelector(`[data-player="${player}"].total-cell`);
-            if (totalCell) {
-                totalCell.textContent = this.calculatePlayerTotal(player);
-            }
+            if (totalCell) totalCell.textContent = total;
+            const headerTotal = document.querySelector(`.player-header-total[data-player="${player}"]`);
+            if (headerTotal) headerTotal.textContent = `(${total})`;
+
+            this.updateLeaderIndicator();
 
             // Check if round is complete and advance if needed
             this.checkRoundComplete();
@@ -332,13 +448,11 @@ class GolfScoreTracker {
     }
     
     focusInputBelow(currentInput) {
+        // Same player, next round (next row)
         const currentPlayer = currentInput.dataset.player;
         const currentRound = parseInt(currentInput.dataset.round);
-        const currentPlayerIndex = this.players.indexOf(currentPlayer);
-        
-        if (currentPlayerIndex < this.players.length - 1) {
-            const nextPlayer = this.players[currentPlayerIndex + 1];
-            const belowInput = document.querySelector(`.score-input[data-player="${nextPlayer}"][data-round="${currentRound}"]`);
+        if (currentRound < this.maxRounds - 1) {
+            const belowInput = document.querySelector(`.score-input[data-player="${currentPlayer}"][data-round="${currentRound + 1}"]`);
             if (belowInput) {
                 belowInput.focus();
                 belowInput.select();
@@ -347,13 +461,11 @@ class GolfScoreTracker {
     }
     
     focusInputAbove(currentInput) {
+        // Same player, previous round (previous row)
         const currentPlayer = currentInput.dataset.player;
         const currentRound = parseInt(currentInput.dataset.round);
-        const currentPlayerIndex = this.players.indexOf(currentPlayer);
-        
-        if (currentPlayerIndex > 0) {
-            const prevPlayer = this.players[currentPlayerIndex - 1];
-            const aboveInput = document.querySelector(`.score-input[data-player="${prevPlayer}"][data-round="${currentRound}"]`);
+        if (currentRound > 0) {
+            const aboveInput = document.querySelector(`.score-input[data-player="${currentPlayer}"][data-round="${currentRound - 1}"]`);
             if (aboveInput) {
                 aboveInput.focus();
                 aboveInput.select();
@@ -466,24 +578,17 @@ class GolfScoreTracker {
         const lowestScore = playerTotals[0].total;
         const winners = playerTotals.filter(player => player.total === lowestScore);
         
-        // Save completed game to history
-        this.saveGameToHistory(playerTotals);
-        
         // Update current round display to show game over
         const roundDisplay = document.getElementById('current-round');
         roundDisplay.textContent = 'Game Over!';
         roundDisplay.style.color = '#dc2626';
         roundDisplay.style.fontWeight = 'bold';
         
-        // Highlight winner row(s)
+        // Highlight winner column(s)
         winners.forEach(winner => {
-            const totalCell = document.querySelector(`[data-player="${winner.name}"].total-cell`);
-            if (totalCell) {
-                const winnerRow = totalCell.parentElement;
-                if (winnerRow) {
-                    winnerRow.classList.add('winner-row');
-                }
-            }
+            document.querySelectorAll(`[data-player="${winner.name}"]`).forEach(cell => {
+                cell.classList.add('winner-col');
+            });
         });
         
         // Show game over message
@@ -508,13 +613,13 @@ class GolfScoreTracker {
                 </div>
                 <button 
                     onclick="gameTracker.closeGameOver()" 
-                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-semibold transition-colors mr-3"
+                    class="premium-btn bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white px-6 py-3 rounded-xl font-bold mr-3"
                 >
                     Continue
                 </button>
                 <button 
                     onclick="gameTracker.newGame()" 
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-semibold transition-colors"
+                    class="premium-btn bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white px-6 py-3 rounded-xl font-bold"
                 >
                     New Game
                 </button>
@@ -537,7 +642,7 @@ class GolfScoreTracker {
     }
 
     resetGame() {
-        if (confirm('Reset the entire game? This will clear all players and scores and cannot be undone.')) {
+        this.showConfirm('Reset the entire game? This will clear all players and scores and cannot be undone.', () => {
             // Clear all game data
             this.players = [];
             this.scores = {};
@@ -552,9 +657,11 @@ class GolfScoreTracker {
             
             // Reset UI to initial state
             document.getElementById('player-setup').style.display = 'block';
-            document.getElementById('previous-games').style.display = 'block';
             document.getElementById('game-board').style.display = 'none';
-            document.getElementById('bottom-nav').style.display = 'none';
+            document.body.classList.remove('game-active');
+            const burgerWrap = document.getElementById('game-burger-wrap');
+            if (burgerWrap) burgerWrap.style.display = 'none';
+            this.closeBurger();
             
             // Reset round display styling
             const roundDisplay = document.getElementById('current-round');
@@ -566,16 +673,15 @@ class GolfScoreTracker {
             this.closeGameOver();
             
             this.updatePlayersList();
-            this.updateHistoryDisplay();
             
             // Focus on player name input
             document.getElementById('player-name').focus();
-        }
+        });
     }
 
     exportSummary() {
         if (this.players.length === 0) {
-            alert('No game data to export.');
+            this.showToast('No game data to export.', 'warning');
             return;
         }
         
@@ -650,7 +756,7 @@ class GolfScoreTracker {
         } catch (error) {
             console.error('Download failed:', error);
             // Fallback: show in alert
-            alert('Download failed. Here\'s your summary:\n\n' + summary);
+            this.showToast('Download failed. Summary was copied to clipboard if possible.', 'error');
         }
     }
     
@@ -681,98 +787,25 @@ class GolfScoreTracker {
             setTimeout(() => toast.remove(), 300);
         }, hideDelay);
     }
-    
-    saveGameToHistory(playerTotals) {
-        try {
-            const gameHistory = this.getGameHistory();
-            
-            // Create new game record
-            const gameRecord = {
-                timestamp: new Date().toISOString(),
-                date: new Date().toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric'
-                }),
-                players: playerTotals.map(player => ({
-                    name: player.name,
-                    total: player.total
-                }))
-            };
-            
-            // Add to beginning of history array
-            gameHistory.unshift(gameRecord);
-            
-            // Keep only the last 10 games
-            if (gameHistory.length > 10) {
-                gameHistory.splice(10);
-            }
-            
-            // Save to localStorage
-            localStorage.setItem('golfScoreHistory', JSON.stringify(gameHistory));
-            
-            // Update the history display
-            this.updateHistoryDisplay();
-            
-        } catch (error) {
-            console.error('Failed to save game to history:', error);
-        }
-    }
-    
-    getGameHistory() {
-        try {
-            const historyData = localStorage.getItem('golfScoreHistory');
-            return historyData ? JSON.parse(historyData) : [];
-        } catch (error) {
-            console.error('Failed to load game history:', error);
-            return [];
-        }
-    }
-    
-    updateHistoryDisplay() {
-        const historyContainer = document.getElementById('games-history');
-        const clearButton = document.getElementById('clear-history');
-        const gameHistory = this.getGameHistory();
-        
-        if (gameHistory.length === 0) {
-            historyContainer.innerHTML = '<p class="text-gray-500 italic">No previous games yet. Complete a game to see your history!</p>';
-            clearButton.style.display = 'none';
-        } else {
-            // Create formatted history list
-            const historyHTML = gameHistory.map(game => {
-                const playersText = game.players
-                    .map(player => `${player.name}: ${player.total}`)
-                    .join(', ');
-                
-                return `
-                    <div class="history-game-item">
-                        <div class="text-sm font-bold">
-                            ${game.date} – ${playersText}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            historyContainer.innerHTML = historyHTML;
-            clearButton.style.display = 'inline-block';
-        }
-    }
-    
-    clearHistory() {
-        if (confirm('Clear all game history? This action cannot be undone.')) {
-            try {
-                localStorage.removeItem('golfScoreHistory');
-                this.updateHistoryDisplay();
-                this.showToast('Game history cleared successfully.');
-            } catch (error) {
-                console.error('Failed to clear history:', error);
-                alert('Failed to clear history. Please try again.');
-            }
-        }
+
+    showConfirm(message, onConfirm) {
+        document.getElementById('confirm-modal-message').textContent = message;
+        this._confirmCallback = onConfirm;
+        document.getElementById('confirm-modal').hidden = false;
     }
 
+    closeBurger() {
+        const menu = document.getElementById('game-burger-menu');
+        const btn = document.getElementById('game-burger-btn');
+        if (menu) menu.classList.remove('game-burger-menu-open');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+    
     updateCurrentRound() {
-        document.getElementById('current-round').textContent = this.currentRound;
-        
+        const roundEl = document.getElementById('current-round');
+        if (roundEl) roundEl.textContent = this.currentRound;
+        this.updateRoundProgress();
+
         // Focus on first player's input for current round
         const firstPlayerInput = document.querySelector(`.score-input[data-player="${this.players[0]}"][data-round="${this.currentRound - 1}"]`);
         if (firstPlayerInput && !firstPlayerInput.value) {
@@ -807,7 +840,7 @@ class GolfScoreTracker {
             return;
         }
         
-        if (confirm(`Clear all scores for round ${this.currentRound}?`)) {
+        this.showConfirm(`Clear all scores for round ${this.currentRound}?`, () => {
             try {
                 const roundIndex = this.currentRound - 1;
                 
@@ -841,13 +874,15 @@ class GolfScoreTracker {
                         console.warn(`Could not find input for player ${player}, round ${roundIndex}`);
                     }
                     
-                    // Update total
+                    // Update total (footer + header)
+                    const tot = this.calculatePlayerTotal(player);
                     const totalCell = document.querySelector(`[data-player="${player}"].total-cell`);
-                    if (totalCell) {
-                        totalCell.textContent = this.calculatePlayerTotal(player);
-                    }
+                    if (totalCell) totalCell.textContent = tot;
+                    const headerTotal = document.querySelector(`.player-header-total[data-player="${player}"]`);
+                    if (headerTotal) headerTotal.textContent = `(${tot})`;
                 });
                 
+                this.updateLeaderIndicator();
                 // Refresh the round highlighting to ensure UI is updated
                 this.highlightCurrentRound();
                 
@@ -860,11 +895,11 @@ class GolfScoreTracker {
                 console.error('Error clearing round:', error);
                 this.showToast('Error clearing round. Please try again.', 'error');
             }
-        }
+        });
     }
 
     clearAllScores() {
-        if (confirm('Clear all scores for all rounds? This cannot be undone.')) {
+        this.showConfirm('Clear all scores for all rounds? This cannot be undone.', () => {
             this.players.forEach(player => {
                 this.scores[player] = new Array(this.maxRounds).fill(null);
             });
@@ -872,25 +907,28 @@ class GolfScoreTracker {
             this.createScoreTable();
             this.updateCurrentRound();
             this.saveToStorage();
-        }
+        });
     }
 
     newGame() {
-        if (confirm('Start a new game? This will clear all current data.')) {
+        this.showConfirm('Start a new game? This will clear all current data.', () => {
             this.players = [];
             this.scores = {};
             this.currentRound = 1;
             
             document.getElementById('player-setup').style.display = 'block';
             document.getElementById('game-board').style.display = 'none';
+            document.body.classList.remove('game-active');
+            const burgerWrap = document.getElementById('game-burger-wrap');
+            if (burgerWrap) burgerWrap.style.display = 'none';
+            this.closeBurger();
             
             this.updatePlayersList();
-            this.updateHistoryDisplay();
             this.saveToStorage();
             
             // Focus on player name input
             document.getElementById('player-name').focus();
-        }
+        });
     }
 
     saveToStorage() {
@@ -961,9 +999,7 @@ class GolfScoreTracker {
         // Offer recovery options
         if (operation === 'save') {
             setTimeout(() => {
-                if (confirm(`${message}\n\nWould you like to export your current game data as backup?`)) {
-                    this.exportSummary();
-                }
+                this.showConfirm('Would you like to export your current game data as backup?', () => this.exportSummary());
             }, 2000);
         }
     }
@@ -1086,22 +1122,11 @@ class GolfScoreTracker {
     }
     
     offerBackupRestore() {
-        // Check if there's any game history that could be used as backup
-        const history = this.getGameHistory();
-        if (history && history.length > 0) {
-            setTimeout(() => {
-                if (confirm('Your current game data appears corrupted. Would you like to view your game history to manually restore a previous game?')) {
-                    // Show the previous games section
-                    document.getElementById('previous-games').style.display = 'block';
-                    this.updateHistoryDisplay();
-                }
-            }, 1000);
-        }
+        this.showToast('Game data may be corrupted. Starting fresh.', 'warning');
     }
 
     updateUI() {
         this.updatePlayersList();
-        this.updateHistoryDisplay();
         
         // If we have a game in progress, show the game board
         if (this.players.length >= this.minPlayers && Object.keys(this.scores).length > 0) {
@@ -1127,7 +1152,10 @@ document.addEventListener('DOMContentLoaded', () => {
         gameTracker = new GolfScoreTracker();
     } catch (error) {
         console.error('Failed to initialize game:', error);
-        alert('Failed to load the game. Please refresh the page and try again.');
+        const toast = document.createElement('div');
+        toast.className = 'toast-message toast-error show';
+        toast.textContent = 'Failed to load the game. Please refresh the page and try again.';
+        document.body.appendChild(toast);
     }
 });
 
@@ -1144,35 +1172,32 @@ document.addEventListener('keydown', (e) => {
             case 'n':
                 if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
-                    const newGameBtn = document.getElementById('new-game');
-                    if (newGameBtn && newGameBtn.style.display !== 'none') {
-                        newGameBtn.click();
+                    if (document.getElementById('game-board').style.display !== 'none') {
+                        gameTracker.newGame();
                     }
                 }
                 break;
             case 'e':
                 if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
-                    const exportBtn = document.getElementById('bottom-export');
-                    if (exportBtn && exportBtn.style.display !== 'none') {
-                        exportBtn.click();
-                    }
+                    const exportBtn = document.getElementById('burger-export');
+                    if (exportBtn) exportBtn.click();
                 }
                 break;
             case 'r':
                 if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
-                    const resetBtn = document.getElementById('bottom-reset');
-                    if (resetBtn && resetBtn.style.display !== 'none') {
-                        resetBtn.click();
-                    }
+                    const resetBtn = document.getElementById('burger-reset');
+                    if (resetBtn) resetBtn.click();
                 }
                 break;
             case 'Escape':
-                // Close any open overlays
-                const overlay = document.querySelector('.game-over-overlay');
-                if (overlay) {
-                    gameTracker.closeGameOver();
+                const menu = document.getElementById('game-burger-menu');
+                if (menu && menu.classList.contains('game-burger-menu-open')) {
+                    gameTracker.closeBurger();
+                } else {
+                    const overlay = document.querySelector('.game-over-overlay');
+                    if (overlay) gameTracker.closeGameOver();
                 }
                 break;
         }

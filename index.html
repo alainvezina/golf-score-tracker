@@ -18,46 +18,60 @@
         <div class="card-pattern absolute inset-0"></div>
     </div>
     
-    <div class="container mx-auto px-4 py-6 max-w-6xl pb-24 relative z-10 safe-area-top safe-area-bottom">
-        <!-- Elegant Header -->
-        <header class="text-center mb-10">
-            <div class="bg-gradient-to-r from-amber-50 via-amber-25 to-amber-50 border-2 border-amber-400 rounded-3xl p-8 mb-6 shadow-2xl backdrop-blur-sm bg-opacity-95">
-                <div class="flex items-center justify-center mb-4">
-                    <span class="text-2xl mr-3">♠️</span>
-                    <h1 class="text-4xl font-bold text-emerald-900 font-cinzel tracking-wide">Golf Score Tracker</h1>
-                    <span class="text-2xl ml-3">♥️</span>
+    <!-- Floating burger menu: outside game board so clicks always work -->
+    <div id="game-burger-wrap" class="game-burger-wrap" style="display: none;" aria-label="Game actions">
+        <button type="button" id="game-burger-btn" class="game-burger-btn" aria-expanded="false" aria-controls="game-burger-menu" aria-label="Open menu">
+            <span class="game-burger-icon" aria-hidden="true"></span>
+        </button>
+        <div id="game-burger-menu" class="game-burger-menu" aria-label="Game actions menu">
+            <button type="button" id="burger-clear-round" class="game-burger-item">🎲 Clear Round</button>
+            <button type="button" id="burger-clear-all" class="game-burger-item">🗑️ Clear All</button>
+            <button type="button" id="burger-new-game" class="game-burger-item">🆕 New Game</button>
+            <button type="button" id="burger-reset" class="game-burger-item">🔄 Reset Game</button>
+            <button type="button" id="burger-export" class="game-burger-item">📊 Export Summary</button>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-4 max-w-6xl pb-24 relative z-10 safe-area-top safe-area-bottom home-container">
+        <!-- Elegant Header (hidden during game to save space) -->
+        <header id="app-header" class="text-center home-header">
+            <div class="bg-gradient-to-r from-amber-50 via-amber-25 to-amber-50 border-2 border-amber-400 rounded-2xl p-4 shadow-2xl backdrop-blur-sm bg-opacity-95">
+                <div class="flex items-center justify-center mb-1">
+                    <span class="text-xl mr-2">♠️</span>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-emerald-900 font-cinzel tracking-wide">Golf Score Tracker</h1>
+                    <span class="text-xl ml-2">♥️</span>
                 </div>
                 <div class="flex items-center justify-center">
-                    <span class="text-amber-600 text-sm font-medium">♦️</span>
-                    <p class="text-emerald-800 text-sm font-medium mx-2 font-cinzel">Premium 8-Card Golf Experience</p>
-                    <span class="text-amber-600 text-sm font-medium">♣️</span>
+                    <span class="text-amber-600 text-xs font-medium">♦️</span>
+                    <p class="text-emerald-800 text-xs font-medium mx-1 font-cinzel">Premium 8-Card Golf</p>
+                    <span class="text-amber-600 text-xs font-medium">♣️</span>
                 </div>
             </div>
         </header>
 
         <!-- Player Setup Section -->
-        <div id="player-setup" class="card-section p-8 mb-8">
-            <div class="flex items-center justify-center mb-8">
-                <span class="text-amber-500 text-lg mr-3">♟️</span>
-                <h2 class="text-2xl font-bold text-amber-100 font-cinzel tracking-wide">Players Registry</h2>
-                <span class="text-amber-500 text-lg ml-3">♟️</span>
+        <div id="player-setup" class="card-section home-player-setup">
+            <div class="flex items-center justify-center mb-4">
+                <span class="text-amber-500 text-base mr-2">♟️</span>
+                <h2 class="text-xl font-bold text-amber-100 font-cinzel tracking-wide">Players Registry</h2>
+                <span class="text-amber-500 text-base ml-2">♟️</span>
             </div>
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+            <div class="flex flex-col sm:flex-row gap-3 mb-4">
                 <input 
                     type="text" 
                     id="player-name" 
-                    placeholder="Enter gentleman's name..." 
-                    class="flex-1 px-5 py-4 bg-amber-50 border-2 border-amber-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-500 text-emerald-900 min-h-[48px] font-medium placeholder-emerald-700"
+                    placeholder="Enter player name..." 
+                    class="flex-1 px-4 py-3 bg-amber-50 border-2 border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-500 text-emerald-900 min-h-[44px] font-medium placeholder-emerald-700 text-sm"
                 >
                 <button 
                     id="add-player" 
-                    class="premium-btn bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white px-8 py-4 rounded-2xl font-bold transition-all transform hover:scale-105 min-h-[48px] shadow-lg"
+                    class="premium-btn bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 min-h-[44px] shadow-lg text-sm"
                 >
                     🎩 Add Player
                 </button>
                 <button 
                     id="start-game" 
-                    class="premium-btn bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-800 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl font-bold transition-all transform hover:scale-105 min-h-[48px] shadow-lg"
+                    class="premium-btn bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-800 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 min-h-[44px] shadow-lg text-sm"
                     style="display: none;"
                 >
                     🎮 Start Game
@@ -66,111 +80,54 @@
             <div id="players-list" class="flex flex-wrap gap-3 items-center"></div>
         </div>
 
-        <!-- Previous Games Section -->
-        <div id="previous-games" class="card-section p-8 mb-8">
-            <div class="flex justify-between items-center mb-8">
-                <div class="flex items-center">
-                    <span class="text-amber-500 text-lg mr-3">📜</span>
-                    <h2 class="text-2xl font-bold text-amber-100 font-cinzel tracking-wide">Game Archive</h2>
-                </div>
-                <button 
-                    id="clear-history" 
-                    class="premium-btn bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all min-h-[36px]"
-                    style="display: none;"
-                >
-                    🗑️ Clear
-                </button>
-            </div>
-            <div id="games-history" class="space-y-4">
-                <div class="text-center py-8 text-amber-200 italic font-cinzel">
-                    <span class="text-2xl block mb-2">🎲</span>
-                    <p>No games in the archive yet.</p>
-                    <p class="text-sm mt-1">Complete your first game to build your legacy!</p>
-                </div>
-            </div>
-        </div>
-
         <!-- Game Board -->
-        <div id="game-board" class="card-section p-8" style="display: none;">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-3">
+        <div id="game-board" class="card-section game-board-compact" style="display: none;">
+            <div class="game-board-header">
                 <div class="flex items-center">
-                    <span class="text-amber-500 text-lg mr-3">🃏</span>
-                    <h2 class="text-2xl font-bold text-amber-100 font-cinzel tracking-wide">Game Table</h2>
+                    <span class="text-amber-500 mr-2">🃏</span>
+                    <h2 class="text-xl font-bold text-amber-100 font-cinzel">Game Table</h2>
                 </div>
-                <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-                    <div class="bg-gradient-to-r from-amber-600 to-amber-500 text-white px-6 py-3 rounded-full font-bold shadow-lg">
-                        🎯 Round <span id="current-round">1</span> of 9
+                <div class="flex items-center gap-2">
+                    <div class="round-badge">
+                        🎯 Round <span id="current-round" class="current-round-num">1</span><span class="round-of">/9</span>
                     </div>
-                    <div class="text-amber-200 text-sm font-medium" id="game-version">
-                        Version: <span id="version-number">—</span>
-                    </div>
+                    <span class="text-amber-200/80 text-xs" id="game-version">Version: <span id="version-number">—</span></span>
                 </div>
             </div>
+            <div class="game-stats-bar">
+                <div class="round-progress" id="round-progress" aria-label="Round progress">
+                    <!-- 1–9 dots filled by script -->
+                </div>
+                <div class="leading-summary" id="leading-summary" aria-live="polite">
+                    <!-- Leading: Name (total) filled by script -->
+                </div>
+            </div>
+            <p class="keyboard-hint" aria-hidden="true">Tab / Enter: next · ↑↓: prev/next round</p>
             
-            <!-- Premium Score Table -->
-            <div class="overflow-x-auto bg-amber-50 border-4 border-amber-400 rounded-2xl shadow-2xl">
+            <!-- Premium Score Table: Rounds as rows, Players as columns -->
+            <div class="score-table-wrapper overflow-x-auto overflow-y-auto bg-amber-50 border-2 border-amber-400 rounded-xl shadow-xl">
                 <table id="score-table" class="w-full border-collapse">
                     <thead>
-                        <tr class="bg-gradient-to-r from-emerald-800 to-emerald-700">
-                            <th class="border-b-2 border-r-2 border-amber-400 px-4 py-4 text-left font-bold text-amber-100 font-cinzel">🏆 Player</th>
-                            <th class="border-b-2 border-r-2 border-amber-400 px-3 py-4 text-center font-bold text-amber-100 font-cinzel">♠️ R1</th>
-                            <th class="border-b-2 border-r-2 border-amber-400 px-3 py-4 text-center font-bold text-amber-100 font-cinzel">♥️ R2</th>
-                            <th class="border-b-2 border-r-2 border-amber-400 px-3 py-4 text-center font-bold text-amber-100 font-cinzel">♦️ R3</th>
-                            <th class="border-b-2 border-r-2 border-amber-400 px-3 py-4 text-center font-bold text-amber-100 font-cinzel">♣️ R4</th>
-                            <th class="border-b-2 border-r-2 border-amber-400 px-3 py-4 text-center font-bold text-amber-100 font-cinzel">♠️ R5</th>
-                            <th class="border-b-2 border-r-2 border-amber-400 px-3 py-4 text-center font-bold text-amber-100 font-cinzel">♥️ R6</th>
-                            <th class="border-b-2 border-r-2 border-amber-400 px-3 py-4 text-center font-bold text-amber-100 font-cinzel">♦️ R7</th>
-                            <th class="border-b-2 border-r-2 border-amber-400 px-3 py-4 text-center font-bold text-amber-100 font-cinzel">♣️ R8</th>
-                            <th class="border-b-2 border-r-2 border-amber-400 px-3 py-4 text-center font-bold text-amber-100 font-cinzel">🎆 R9</th>
-                            <th class="border-b-2 border-amber-400 px-4 py-4 text-center font-bold text-amber-100 bg-gradient-to-r from-amber-600 to-amber-500 font-cinzel">🏅 Total</th>
+                        <tr id="score-table-header-row" class="bg-gradient-to-r from-emerald-800 to-emerald-700">
+                            <!-- Round label + player names filled by script -->
                         </tr>
                     </thead>
                     <tbody id="score-table-body">
-                        <!-- Dynamic player rows will be added here -->
+                        <!-- Round rows + Total row filled by script -->
                     </tbody>
                 </table>
-            </div>
-
-            <!-- Premium Game Controls -->
-            <div class="flex flex-wrap gap-4 mt-8 justify-center">
-                <button 
-                    id="clear-round" 
-                    class="premium-btn bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 min-h-[48px] shadow-lg"
-                >
-                    🎲 Clear Round
-                </button>
-                <button 
-                    id="clear-all" 
-                    class="premium-btn bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 min-h-[48px] shadow-lg"
-                >
-                    🗑️ Clear All
-                </button>
-                <button 
-                    id="new-game" 
-                    class="premium-btn bg-gradient-to-r from-slate-600 to-slate-500 hover:from-slate-700 hover:to-slate-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 min-h-[48px] shadow-lg"
-                >
-                    🆕 New Game
-                </button>
             </div>
         </div>
     </div>
 
-    <!-- Premium Fixed Bottom Navigation -->
-    <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 border-t-4 border-amber-400 p-4 z-50 shadow-2xl safe-area-bottom-nav" style="display: none;">
-        <div class="container mx-auto max-w-6xl">
-            <div class="flex gap-4 justify-center">
-                <button 
-                    id="bottom-reset" 
-                    class="premium-btn bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white px-6 py-4 rounded-2xl font-bold transition-all transform hover:scale-105 min-h-[52px] flex-1 max-w-[160px] shadow-lg"
-                >
-                    🔄 Reset Game
-                </button>
-                <button 
-                    id="bottom-export" 
-                    class="premium-btn bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 py-4 rounded-2xl font-bold transition-all transform hover:scale-105 min-h-[52px] flex-1 max-w-[160px] shadow-lg"
-                >
-                    📊 Export Summary
-                </button>
+    <!-- Confirmation modal -->
+    <div id="confirm-modal" class="confirm-modal" role="dialog" aria-labelledby="confirm-modal-title" aria-modal="true" hidden>
+        <div class="confirm-modal-backdrop"></div>
+        <div class="confirm-modal-box">
+            <p id="confirm-modal-message" class="confirm-modal-message"></p>
+            <div class="confirm-modal-actions">
+                <button type="button" id="confirm-modal-cancel" class="premium-btn bg-gradient-to-r from-slate-600 to-slate-500 hover:from-slate-700 hover:to-slate-600 text-white px-6 py-3 rounded-xl font-bold">Cancel</button>
+                <button type="button" id="confirm-modal-ok" class="premium-btn bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white px-6 py-3 rounded-xl font-bold">Confirm</button>
             </div>
         </div>
     </div>
